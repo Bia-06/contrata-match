@@ -50,7 +50,7 @@ export const AboutPage = ({ onNavigate }) => {
               Sabemos que contratar para restaurantes, bares e hotéis é um desafio único. A rotatividade é alta, o tempo é curto e a química da equipe é essencial.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              Criamos uma plataforma que entende a diferença entre um <i>Sous Chef</i> e um <i>Chef de Partie</i>. Que valoriza tanto a técnica quanto a disponibilidade. Nosso objetivo é simplificar o processo para que você possa focar no que importa: servir bem.
+              Criamos uma plataforma que entende a diferença entre as funções. Que valoriza tanto a técnica quanto a disponibilidade. Nosso objetivo é simplificar o processo para que você possa focar no que importa: servir bem.
             </p>
           </div>
         </div>
@@ -61,9 +61,9 @@ export const AboutPage = ({ onNavigate }) => {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-10">
             {[
-              { icon: Zap, title: "Agilidade", text: "Processos rápidos porque a cozinha não pode parar." },
+              { icon: Zap, title: "Agilidade", text: "Processos rápidos porque o negócio não pode parar." },
               { icon: Heart, title: "Paixão", text: "Conectamos pessoas que amam o que fazem." },
-              { icon: Users, title: "Comunidade", text: "Fomentamos o crescimento do setor local." }
+              { icon: Users, title: "Comunidade", text: "Incentivamos o crescimento do setor local." }
             ].map((item, i) => (
               <div key={i} className="text-center p-8 rounded-2xl hover:bg-stone-50 transition-colors">
                 <div className="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -101,7 +101,6 @@ export const AboutPage = ({ onNavigate }) => {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 };

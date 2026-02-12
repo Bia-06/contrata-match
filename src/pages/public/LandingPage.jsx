@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChefHat, Wine, Coffee, Store, UtensilsCrossed, ChevronLeft, ChevronRight, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
-import { Footer } from '../../components/layout/Footer';
+import { Footer } from '../../components/layout/Footer'; 
 import { publicService } from '../../services/publicService';
 
 // Componente para animar elementos quando entram na tela
@@ -42,7 +42,7 @@ const FadeInSection = ({ children, delay = '0ms' }) => {
   );
 };
 
-export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
+export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen, onOpenModal }) => {
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
 
@@ -60,21 +60,15 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
     load();
   }, []);
 
-  // Helper para formatar o turno
   const formatSchedule = (schedule) => {
     const map = {
-      'integral': 'Integral',
-      'noturno': 'Noturno',
-      'diurno': 'Diurno',
-      'tarde': 'Tarde/Noite',
-      'escala_6x1': 'Escala 6x1',
-      'escala_12x36': 'Escala 12x36',
-      'flexivel': 'Flexível'
+      'integral': 'Integral', 'noturno': 'Noturno', 'diurno': 'Diurno',
+      'tarde': 'Tarde/Noite', 'escala_6x1': 'Escala 6x1',
+      'escala_12x36': 'Escala 12x36', 'flexivel': 'Flexível'
     };
     return map[schedule] || schedule || 'Integral';
   };
 
-  // Cores rotativas para a barra lateral dos cards
   const accentColors = [
     'bg-orange-500', 'bg-emerald-500', 'bg-purple-500', 'bg-blue-500', 'bg-amber-500', 'bg-rose-500',
   ];
@@ -85,7 +79,6 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
 
       <main>
         {/* ═══ HERO ═══ */}
-        {/* Diminuído pt-20 para pt-12 e pb-32 para pb-20 para reduzir espaçamento */}
         <section className="relative pt-12 pb-20 px-6">
           <div className="blob blob-1"></div>
           <div className="blob blob-2"></div>
@@ -100,7 +93,7 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
               <h1 className="text-6xl md:text-7xl font-serif font-medium leading-[1.05] tracking-tight">
                 O match perfeito <br />
                 <span className="italic text-emerald-800 relative inline-block">
-                  para sua cozinha
+                  para seu negócio
                   <svg className="absolute w-full h-3 -bottom-1 left-0 text-orange-400 opacity-60" viewBox="0 0 100 10" preserveAspectRatio="none">
                     <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="3" fill="none" />
                   </svg>
@@ -109,7 +102,7 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
               </h1>
 
               <p className="text-xl text-emerald-900/60 max-w-lg leading-relaxed">
-                A plataforma que conecta talentos da gastronomia aos melhores estabelecimentos com inteligência e rapidez.
+                A plataforma que conecta talentos aos melhores estabelecimentos com inteligência e rapidez.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
@@ -124,7 +117,6 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
 
             {/* Ilustração/Cards */}
             <div className="relative h-[550px] hidden md:block">
-              {/* Card flutuante - mostra primeira vaga real ou fallback */}
               <div className="absolute top-6 right-6 w-64 bg-white p-5 rounded-3xl shadow-2xl shadow-emerald-900/10 border border-emerald-50 z-20 animate-[float_6s_infinite_ease-in-out]">
                 <div className="flex justify-between items-start mb-4">
                   <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
@@ -139,10 +131,9 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
                 <p className="text-xs text-right mt-1 text-orange-600 font-medium">98% Match</p>
               </div>
 
-              {/* Card Verde Alterado - Foco Regional */}
               <div className="absolute top-1/2 left-0 -translate-y-1/2 w-72 h-80 bg-emerald-900 rounded-[2rem] rotate-[-6deg] overflow-hidden shadow-2xl z-10 flex flex-col items-center justify-center text-emerald-50 text-center p-6">
                 <div className="bg-emerald-800/50 p-4 rounded-full mb-4 animate-pulse">
-                   <MapPin size={48} className="text-orange-400" />
+                  <MapPin size={48} className="text-orange-400" />
                 </div>
                 <h3 className="font-serif text-2xl font-bold mb-2">Foco Regional</h3>
                 <p className="text-emerald-200/80 text-sm leading-relaxed">
@@ -150,14 +141,12 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
                 </p>
                 <div className="mt-4 flex flex-col gap-2 w-full">
                   <div className="bg-emerald-800/50 px-3 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
-                    <CheckCircle2 size={14} className="text-emerald-400"/> Marília
+                    <CheckCircle2 size={14} className="text-emerald-400" /> Marília
                   </div>
                   <div className="bg-emerald-800/50 px-3 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
-                    <CheckCircle2 size={14} className="text-emerald-400"/> Garça
+                    <CheckCircle2 size={14} className="text-emerald-400" /> Garça
                   </div>
                 </div>
-                
-                {/* Efeito de fundo */}
                 <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 to-transparent pointer-events-none"></div>
               </div>
             </div>
@@ -225,16 +214,27 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
                       {/* Barra colorida lateral */}
                       <div className={`absolute left-0 top-0 w-1 h-full ${accentColors[index % accentColors.length]} group-hover:w-2 transition-all`}></div>
 
-                      {/* Inicial da empresa */}
-                      <div className="w-16 h-16 bg-stone-100 rounded-2xl flex items-center justify-center font-serif font-bold text-2xl text-stone-400 group-hover:bg-emerald-900 group-hover:text-white transition-colors shrink-0">
-                        {job.company.charAt(0)}
+                      {/* Logo ou Inicial da empresa */}
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden bg-stone-100 group-hover:bg-emerald-900 transition-colors">
+                        {job.companyLogo ? (
+                          <img
+                            src={job.companyLogo}
+                            alt={job.company}
+                            className="w-full h-full object-cover rounded-2xl"
+                          />
+                        ) : (
+                          <span className="font-serif font-bold text-2xl text-stone-400 group-hover:text-white transition-colors">
+                            {job.company.charAt(0)}
+                          </span>
+                        )}
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 text-center md:text-left">
                         <h3 className="font-bold text-xl group-hover:text-orange-600 transition-colors">{job.title}</h3>
                         <p className="text-emerald-900/50 text-sm mt-1">
-                          {job.company} • {job.location} • {formatSchedule(job.work_schedule)}
+                          {job.company} • {job.location}
+                          {job.work_schedule ? ` • ${formatSchedule(job.work_schedule)}` : ''}
                         </p>
                       </div>
 
@@ -260,7 +260,6 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
               </FadeInSection>
             )}
 
-            {/* Botão ver todas */}
             {jobs.length > 6 && (
               <FadeInSection delay="200ms">
                 <div className="text-center mt-10">
@@ -273,8 +272,6 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 };

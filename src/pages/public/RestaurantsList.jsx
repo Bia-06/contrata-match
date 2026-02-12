@@ -46,7 +46,7 @@ export const RestaurantsList = ({ onNavigate }) => {
             Nossos Parceiros
           </h1>
           <p className="text-lg text-emerald-900/60 max-w-2xl mx-auto">
-            Conheça os restaurantes, bares e cafés que estão construindo suas equipes através do ContrataMatch.
+            Conheça os restaurantes, bares e lanchonetes que estão construindo suas equipes através do ContrataMatch.
           </p>
         </div>
 

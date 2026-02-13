@@ -4,7 +4,6 @@ import { supabase } from '../../../lib/supabaseClient';
 export const authService = {
 
   // ── CADASTRO ──
-  // O trigger 'on_auth_user_created' cria a empresa automaticamente
   async register({ email, password, companyName, cnpj, ownerName }) {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -72,7 +71,7 @@ export const authService = {
     return data;
   },
 
-  // ── USUÁRIO ATUAL (usado pelo App.jsx para recuperar sessão) ──
+  // ── USUÁRIO ATUAL ──
   async getCurrentUser() {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return null;

@@ -4,10 +4,14 @@ import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Check, X, Star, Ci
 import { dataService } from './services/dataService';
 import { publicService } from '../../services/publicService';
 
-export const AdminCandidates = ({ user }) => {
+// Recebe initialFilter que pode conter { searchTerm: 'Nome' }
+export const AdminCandidates = ({ user, initialFilter }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Inicia o searchTerm com o valor vindo do dashboard, se existir
+  const [searchTerm, setSearchTerm] = useState(initialFilter?.searchTerm || '');
+  
   const [selectedJob, setSelectedJob] = useState('all');
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +22,13 @@ export const AdminCandidates = ({ user }) => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 2500);
   };
+
+  // Se o filtro inicial mudar (navegação), atualiza o search
+  useEffect(() => {
+    if (initialFilter?.searchTerm) {
+      setSearchTerm(initialFilter.searchTerm);
+    }
+  }, [initialFilter]);
 
   useEffect(() => {
     if (!user?.companyId) return;

@@ -12,7 +12,7 @@ const RestaurantModal = ({ company, onClose, onNavigate }) => {
 
   const handleVerVagas = () => {
     onClose();
-    onNavigate('jobs');
+    onNavigate('jobs', { filterCompanyId: company.id });
   };
 
   // Função para copiar link
@@ -268,7 +268,7 @@ export const RestaurantsList = ({ onNavigate }) => {
                 {/* Capa / Header do Card */}
                 <div className="h-32 bg-emerald-50 relative">
                   <div className="absolute -bottom-8 left-6">
-                    {/* AQUI: O evento onClick está APENAS na div da Logo */}
+                    {/* O evento onClick está APENAS na div da Logo */}
                     <div 
                       onClick={() => handleOpenModal(company)}
                       className="w-20 h-20 rounded-xl bg-white p-1 shadow-md group-hover:scale-105 transition-transform cursor-pointer"

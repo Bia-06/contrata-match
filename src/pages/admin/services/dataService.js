@@ -3,9 +3,7 @@ import { supabase } from '../../../lib/supabaseClient';
 
 export const dataService = {
 
-  // ═══════════════════════════
   //  VAGAS (JOBS)
-  // ═══════════════════════════
 
   async getCompanyJobs(companyId) {
     const { data, error } = await supabase
@@ -50,9 +48,7 @@ export const dataService = {
     if (error) throw error;
   },
 
-  // ═══════════════════════════
-  //  CANDIDATURAS (APPLICATIONS)
-  // ═══════════════════════════
+  //  CANDIDATURAS 
 
   async getCompanyApplications(companyId) {
     const { data, error } = await supabase
@@ -96,9 +92,7 @@ export const dataService = {
     return data;
   },
 
-  // ═══════════════════════════
-  //  DASHBOARD — ESTATÍSTICAS
-  // ═══════════════════════════
+  //  DASHBOARD 
 
   async getDashboardStats(companyId) {
     // Vagas ativas
@@ -185,9 +179,7 @@ export const dataService = {
     }));
   },
 
-  // ═══════════════════════════
   //  PERFIL DA EMPRESA
-  // ═══════════════════════════
 
   async getCompanyProfile(companyId) {
     const { data, error } = await supabase

@@ -1,11 +1,12 @@
 // src/pages/public/JobsList.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, MapPin, Clock, SlidersHorizontal, Building2, Loader2, Inbox, Calendar, DollarSign, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Clock, SlidersHorizontal, Building2, Loader2, Inbox, Calendar, DollarSign, ArrowRight, X } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
 
-export const JobsList = ({ onNavigate }) => {
+// Recebe props extras (params) que podem vir da navegação
+export const JobsList = ({ onNavigate, filterCompanyId }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,7 +15,16 @@ export const JobsList = ({ onNavigate }) => {
   // Filtros
   const [filterContract, setFilterContract] = useState('all');
   const [filterCity, setFilterCity] = useState('all');
+  
+  // Estado para filtro de empresa
+  const [targetCompanyId, setTargetCompanyId] = useState(filterCompanyId || null);
+
   const [showFilters, setShowFilters] = useState(false);
+
+  // Se filterCompanyId mudar (navegação), atualiza o estado local
+  useEffect(() => {
+    if (filterCompanyId) setTargetCompanyId(filterCompanyId);
+  }, [filterCompanyId]);
 
   useEffect(() => {
     const load = async () => {
@@ -41,6 +51,11 @@ export const JobsList = ({ onNavigate }) => {
 
   const filtered = useMemo(() => {
     return jobs.filter(job => {
+      // 1. Filtro de Empresa (vindo do Restaurante)
+      if (targetCompanyId && String(job.company_id) !== String(targetCompanyId)) {
+        return false;
+      }
+
       const term = searchTerm.toLowerCase();
       const matchesSearch = !term ||
         job.title.toLowerCase().includes(term) ||
@@ -54,11 +69,17 @@ export const JobsList = ({ onNavigate }) => {
 
       return matchesSearch && matchesContract && matchesCity;
     });
-  }, [jobs, searchTerm, filterContract, filterCity]);
+  }, [jobs, searchTerm, filterContract, filterCity, targetCompanyId]);
 
-  const activeFilterCount = [filterContract !== 'all', filterCity !== 'all'].filter(Boolean).length;
+  const activeFilterCount = [filterContract !== 'all', filterCity !== 'all', targetCompanyId !== null].filter(Boolean).length;
 
-  // Cores de acento por índice
+  // Encontra o nome da empresa filtrada para exibir no banner
+  const targetCompanyName = useMemo(() => {
+    if (!targetCompanyId || jobs.length === 0) return null;
+    const found = jobs.find(j => String(j.company_id) === String(targetCompanyId));
+    return found ? found.company : 'Empresa Selecionada';
+  }, [targetCompanyId, jobs]);
+
   const accentGradients = [
     'from-orange-500 to-amber-500',
     'from-emerald-500 to-teal-500',
@@ -81,6 +102,27 @@ export const JobsList = ({ onNavigate }) => {
             {loading ? 'Carregando...' : `${filtered.length} oportunidade${filtered.length !== 1 ? 's' : ''} disponíve${filtered.length !== 1 ? 'is' : 'l'}`}
           </p>
         </div>
+
+        {targetCompanyId && (
+          <div className="mb-6 p-4 bg-emerald-100 border border-emerald-200 rounded-2xl flex items-center justify-between animate-[fadeIn_0.3s_ease-out]">
+            <div className="flex items-center gap-3">
+              <div className="bg-emerald-500 text-white p-2 rounded-lg">
+                <Building2 size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">Filtrando por empresa</p>
+                <p className="font-bold text-emerald-950 text-lg leading-none">{targetCompanyName}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setTargetCompanyId(null)}
+              className="p-2 hover:bg-emerald-200 rounded-full text-emerald-700 transition-colors"
+              title="Remover filtro de empresa"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        )}
 
         {/* Barra de Busca */}
         <div className="flex gap-3 mb-4">
@@ -132,7 +174,7 @@ export const JobsList = ({ onNavigate }) => {
             </div>
             {activeFilterCount > 0 && (
               <div className="flex items-end">
-                <button onClick={() => { setFilterContract('all'); setFilterCity('all'); }}
+                <button onClick={() => { setFilterContract('all'); setFilterCity('all'); setTargetCompanyId(null); }}
                   className="text-sm text-orange-600 font-bold hover:underline px-3 py-3">
                   Limpar
                 </button>
@@ -253,13 +295,21 @@ export const JobsList = ({ onNavigate }) => {
               <Inbox size={32} className="text-stone-400" />
             </div>
             <p className="text-lg font-medium text-emerald-950">
-              {jobs.length === 0 ? 'Nenhuma vaga publicada ainda' : 'Nenhuma vaga encontrada'}
+              {jobs.length === 0 ? 'Nenhuma vaga publicada ainda' : 'Nenhuma vaga encontrada para esta empresa'}
             </p>
             <p className="text-sm text-emerald-900/50 mt-2">
               {jobs.length === 0
                 ? 'As vagas aparecerão aqui assim que os restaurantes começarem a publicar.'
-                : 'Tente ajustar a busca ou os filtros.'}
+                : 'Esta empresa pode não ter vagas abertas no momento.'}
             </p>
+            {targetCompanyId && (
+              <button 
+                onClick={() => setTargetCompanyId(null)}
+                className="mt-6 text-orange-600 font-bold hover:underline text-sm"
+              >
+                Ver vagas de todas as empresas
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -100,7 +100,7 @@ export default function App() {
     return 'landing';
   };
 
-  const [view, setView] = useState(getInitialView); // Inicia com a view correta
+  const [view, setView] = useState(getInitialView); 
   const [adminView, setAdminView] = useState('dashboard');
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -135,7 +135,6 @@ export default function App() {
     recoverSession();
   }, []);
 
-  // FIX: Redireciona para login se tentar acessar admin sem estar logado
   useEffect(() => {
     if (!isCheckingSession && view === 'adminDashboard' && !user) {
       setView('adminLogin');
@@ -223,7 +222,7 @@ export default function App() {
           />
         )}
         
-        {view === 'jobs' && <JobsList {...pageProps} />}
+        {view === 'jobs' && <JobsList {...pageProps} filterCompanyId={selectedJob?.filterCompanyId} />}
         {view === 'restaurants' && <RestaurantsList {...pageProps} />}
         {view === 'about' && <AboutPage {...pageProps} />}
         {view === 'apply' && <ApplyForm selectedJob={selectedJob} {...pageProps} showToast={showToast} />}

@@ -37,6 +37,12 @@ export const AdminDashboard = ({ setAdminView, user }) => {
     { label: 'Taxa de Aprovação', value: stats.totalApplications > 0 ? `${Math.round((stats.approvedApplications / stats.totalApplications) * 100)}%` : '—', subtext: 'Aprovados / Total', icon: TrendingUp, color: 'bg-stone-50 text-stone-600' },
   ] : [];
 
+  // Função para navegar para detalhes do candidato
+  const handleViewCandidate = (candidateName) => {
+    // Passa o nome para filtrar na tela de candidatos
+    setAdminView('candidates', { searchTerm: candidateName });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -94,8 +100,12 @@ export const AdminDashboard = ({ setAdminView, user }) => {
         <div className="px-8 pb-8 space-y-2">
           {recentApps.length > 0 ? (
             recentApps.map((app, index) => (
-              <div key={app.id} className="flex items-center justify-between p-4 bg-stone-50/80 rounded-2xl hover:bg-emerald-50/60 transition-all group cursor-pointer"
-                style={{ animationDelay: `${index * 60}ms` }}>
+              <div 
+                key={app.id} 
+                className="flex items-center justify-between p-4 bg-stone-50/80 rounded-2xl hover:bg-emerald-50/60 transition-all group cursor-pointer"
+                style={{ animationDelay: `${index * 60}ms` }}
+                onClick={() => handleViewCandidate(app.candidate_name)} // Redireciona ao clicar
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-800 font-bold text-sm shrink-0 group-hover:bg-emerald-200 transition-colors">
                     {app.candidate_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}

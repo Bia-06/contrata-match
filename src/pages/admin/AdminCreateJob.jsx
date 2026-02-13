@@ -12,13 +12,13 @@ export const AdminCreateJob = ({ setAdminView, user, showToast, jobToEdit }) => 
   const [form, setForm] = useState({
     title: '',
     description: '',
-    location_mode: 'onsite', // Sempre Presencial
-    city: 'Marília',         // Default
-    state: 'São Paulo',      // Default e Fixo
-    age_range: '',           // Antigo seniority
+    location_mode: 'onsite', 
+    city: 'Marília',         
+    state: 'São Paulo',      
+    age_range: '',           
     contract_type: 'clt',
     salary_range: '',
-    work_schedule: 'integral', // NOVO: Período
+    work_schedule: 'integral', 
   });
 
   // Carregar dados se for edição
@@ -80,7 +80,7 @@ export const AdminCreateJob = ({ setAdminView, user, showToast, jobToEdit }) => 
         age_range: form.age_range || null,
         contract_type: form.contract_type,
         salary_range: form.salary_range.trim() || null,
-        work_schedule: form.work_schedule, // Envia o período
+        work_schedule: form.work_schedule, 
       };
 
       if (isEditing) {

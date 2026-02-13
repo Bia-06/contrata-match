@@ -24,7 +24,7 @@ export const AdminProfile = ({ user, showToast }) => {
   const fileInputRef = useRef(null);
 
   // Controle de Segmentos (Múltipla Seleção)
-  const [selectedSegments, setSelectedSegments] = useState([]); // Array de strings
+  const [selectedSegments, setSelectedSegments] = useState([]); 
   const [isOtherSelected, setIsOtherSelected] = useState(false);
   const [customSegment, setCustomSegment] = useState('');
   

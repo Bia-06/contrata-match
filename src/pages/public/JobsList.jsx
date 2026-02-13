@@ -116,9 +116,9 @@ export const JobsList = ({ onNavigate }) => {
                 className="w-full px-4 py-3 border border-emerald-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-white cursor-pointer font-medium">
                 <option value="all">Todos</option>
                 <option value="clt">CLT</option>
-                <option value="pj">PJ</option>
-                <option value="estagio">Estágio</option>
+                <option value="pj">Freelancer Fixo</option>
                 <option value="extra">Extra (Diária)</option>
+                <option value="estagio">Estágio</option>
               </select>
             </div>
             <div className="flex-1 min-w-[180px]">

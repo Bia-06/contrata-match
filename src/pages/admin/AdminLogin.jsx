@@ -6,33 +6,28 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { authService } from './services/authService';
 
-export const AdminLogin = ({ onNavigate, setUser }) => {
+export const AdminLogin = ({ onNavigate, setUser, onOpenModal }) => {
   const [activeTab, setActiveTab] = useState('login');
   const [remember, setRemember] = useState(true);
   const [agreed, setAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [cnpj, setCnpj] = useState('');
 
-  // Mostrar/ocultar senhas
   const [showLoginPass, setShowLoginPass] = useState(false);
   const [showRegPass, setShowRegPass] = useState(false);
   const [showRegConfirmPass, setShowRegConfirmPass] = useState(false);
 
-  // Campos login — vazios (sem demo)
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
-  // Campos cadastro
   const [regCompanyName, setRegCompanyName] = useState('');
   const [regOwnerName, setRegOwnerName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
-  // Esqueceu a senha
   const [forgotEmail, setForgotEmail] = useState('');
 
-  // Feedback
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
@@ -44,7 +39,6 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
     setFieldErrors({});
   };
 
-  // ── Máscara CNPJ ──
   const handleCnpjChange = (e) => {
     let value = e.target.value.replace(/\D/g, '');
     if (value.length > 14) value = value.slice(0, 14);
@@ -55,7 +49,6 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
     setCnpj(value);
   };
 
-  // ── Validações ──
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const validateCnpj = (raw) => {
@@ -188,7 +181,6 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
     }
   };
 
-  // ── Helpers visuais ──
   const FieldError = ({ name }) =>
     fieldErrors[name] ? (
       <p className="text-red-500 text-xs mt-1.5 ml-1 flex items-center gap-1">
@@ -207,7 +199,6 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
     </button>
   );
 
-  // ═══════════ RENDER ═══════════
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f0fdf4] px-6 font-sans relative overflow-hidden">
       <div className="blob blob-1 opacity-40"></div>
@@ -223,7 +214,7 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
           </div>
         </div>
 
-        {/* Alertas globais */}
+        {/* Alertas */}
         {error && (
           <div className="flex items-start gap-3 p-4 rounded-2xl text-sm mb-6 bg-red-50 text-red-700 border border-red-100 animate-[fadeIn_0.3s_ease-out]">
             <AlertTriangle size={18} className="shrink-0 mt-0.5" />
@@ -376,6 +367,7 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
                 <FieldError name="confirmPassword" />
               </div>
 
+              {/* FIX: Links abrem modais de Termos e Privacidade */}
               <div>
                 <div className="flex items-start gap-2 pt-2">
                   <div className={`w-5 h-5 mt-0.5 rounded-lg border transition-all duration-200 flex items-center justify-center cursor-pointer shrink-0 ${agreed ? 'bg-emerald-600 border-emerald-600' : 'border-emerald-200 bg-white'}`}
@@ -383,7 +375,15 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
                     {agreed && <Check size={14} className="text-white stroke-[3]" />}
                   </div>
                   <p className="text-xs text-emerald-900/60 leading-tight">
-                    Li e concordo com os <a href="#" className="text-emerald-800 font-bold hover:underline">Termos de Uso</a> e <a href="#" className="text-emerald-800 font-bold hover:underline">Política de Privacidade</a>.
+                    Li e concordo com os{' '}
+                    <button type="button" onClick={() => onOpenModal?.('terms')}
+                      className="text-emerald-800 font-bold hover:underline">
+                      Termos de Uso
+                    </button>{' '}e{' '}
+                    <button type="button" onClick={() => onOpenModal?.('privacy')}
+                      className="text-emerald-800 font-bold hover:underline">
+                      Política de Privacidade
+                    </button>.
                   </p>
                 </div>
                 <FieldError name="terms" />
@@ -437,7 +437,6 @@ export const AdminLogin = ({ onNavigate, setUser }) => {
           </form>
         )}
 
-        {/* Rodapé — contextual: "Voltar ao login" no forgot, "Voltar ao início" nas demais */}
         <div className="mt-8 pt-6 border-t border-emerald-900/5 text-center">
           {activeTab === 'forgot' ? (
             <button onClick={() => switchTab('login')}

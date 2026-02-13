@@ -44,7 +44,7 @@ export const publicService = {
   async getCompanies() {
     const { data, error } = await supabase
       .from('companies')
-      .select('id, name, logo_path, location, segment, description, website')
+      .select('id, name, logo_path, location, segment, description, website, phone, email')
       .order('name', { ascending: true });
 
     if (error) throw error;

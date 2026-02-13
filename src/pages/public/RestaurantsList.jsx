@@ -1,19 +1,150 @@
+// src/pages/public/RestaurantsList.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, MapPin, Building2, ExternalLink, Utensils, Loader2 } from 'lucide-react';
+import { Search, MapPin, ExternalLink, Utensils, Loader2, X, Globe, Phone, Mail } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
 
+// --- Componente do Modal de Detalhes ---
+const RestaurantModal = ({ company, onClose, onNavigate }) => {
+  if (!company) return null;
+
+  const handleVerVagas = () => {
+    onClose();
+    // Navega para a página de vagas (o ideal seria filtrar por empresa, 
+    // mas por enquanto vai para a lista geral conforme solicitado)
+    onNavigate('jobs');
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-emerald-950/60 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={onClose}>
+      {/* Container do Modal (o clique aqui não fecha) */}
+      <div 
+        className="bg-white rounded-[2rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-emerald-100 animate-[scaleIn_0.3s_ease-out] overflow-hidden relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        
+        {/* Botão Fechar */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-stone-100 text-stone-500 hover:text-orange-600 transition-colors z-20 shadow-sm"
+        >
+          <X size={24} />
+        </button>
+
+        {/* Header com Capa e Logo */}
+        <div className="relative h-40 bg-emerald-50 shrink-0">
+          <div className="absolute -bottom-10 left-8">
+            <div className="w-24 h-24 rounded-2xl bg-white p-1.5 shadow-lg">
+              <div className="w-full h-full rounded-xl bg-emerald-100 flex items-center justify-center font-serif text-3xl font-bold text-emerald-700 overflow-hidden">
+                {company.logo_path ? (
+                  <img src={company.logo_path} alt={company.name} className="w-full h-full object-cover" />
+                ) : (
+                  company.name.charAt(0)
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Conteúdo com Scroll */}
+        <div className="pt-14 px-8 pb-8 overflow-y-auto custom-scrollbar">
+          
+          {/* Título e Tags */}
+          <div className="mb-6">
+            <h2 className="text-3xl font-serif font-bold text-emerald-950 mb-2">{company.name}</h2>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full uppercase tracking-wide">
+                {company.segment || 'Gastronomia'}
+              </span>
+              {company.size && (
+                <span className="px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold rounded-full uppercase tracking-wide">
+                  Equipe {company.size === 'micro' ? 'Micro' : company.size === 'grande' ? 'Grande' : 'Média'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Descrição */}
+          <div className="mb-8">
+            <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider mb-2">Sobre</h3>
+            <p className="text-stone-600 leading-relaxed whitespace-pre-line">
+              {company.description || 'Este estabelecimento ainda não adicionou uma descrição detalhada.'}
+            </p>
+          </div>
+
+          {/* Grid de Informações */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div className="bg-stone-50 p-4 rounded-xl flex items-start gap-3">
+              <MapPin className="text-orange-500 shrink-0 mt-0.5" size={18} />
+              <div>
+                <p className="text-xs font-bold text-stone-400 uppercase mb-0.5">Localização</p>
+                <p className="text-emerald-900 font-medium text-sm">{company.location || 'Não informado'}</p>
+              </div>
+            </div>
+
+            {company.website && (
+              <div className="bg-stone-50 p-4 rounded-xl flex items-start gap-3">
+                <Globe className="text-orange-500 shrink-0 mt-0.5" size={18} />
+                <div>
+                  <p className="text-xs font-bold text-stone-400 uppercase mb-0.5">Website / Redes</p>
+                  <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-medium text-sm hover:underline truncate block">
+                    Acessar página
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Exibe Telefone se existir */}
+            {company.phone && (
+              <div className="bg-stone-50 p-4 rounded-xl flex items-start gap-3">
+                <Phone className="text-orange-500 shrink-0 mt-0.5" size={18} />
+                <div>
+                  <p className="text-xs font-bold text-stone-400 uppercase mb-0.5">Contato</p>
+                  <p className="text-emerald-900 font-medium text-sm">{company.phone}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Exibe Email se existir */}
+            {company.email && (
+              <div className="bg-stone-50 p-4 rounded-xl flex items-start gap-3">
+                <Mail className="text-orange-500 shrink-0 mt-0.5" size={18} />
+                <div>
+                  <p className="text-xs font-bold text-stone-400 uppercase mb-0.5">Email</p>
+                  <p className="text-emerald-900 font-medium text-sm truncate">{company.email}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer do Modal (Ação) */}
+        <div className="p-6 border-t border-stone-100 bg-stone-50 shrink-0 flex justify-end gap-3">
+           <Button variant="secondary" onClick={onClose}>
+             Fechar
+           </Button>
+           <Button onClick={handleVerVagas} className="bg-emerald-900 text-white hover:bg-emerald-800 shadow-lg shadow-emerald-900/10">
+             Ver Vagas Disponíveis <ExternalLink size={16} className="ml-2" />
+           </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Componente Principal ---
 export const RestaurantsList = ({ onNavigate }) => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       try {
-        // Precisaremos adicionar este método no publicService
         const data = await publicService.getCompanies(); 
         setCompanies(data);
       } catch (err) {
@@ -37,6 +168,12 @@ export const RestaurantsList = ({ onNavigate }) => {
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-emerald-950">
       <Navbar onNavigate={onNavigate} onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} isMenuOpen={isMenuOpen} />
+
+      <RestaurantModal 
+        company={selectedCompany} 
+        onClose={() => setSelectedCompany(null)} 
+        onNavigate={onNavigate}
+      />
 
       <div className="max-w-6xl mx-auto px-6 py-12">
         
@@ -71,12 +208,20 @@ export const RestaurantsList = ({ onNavigate }) => {
         ) : filtered.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filtered.map(company => (
-              <div key={company.id} className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 flex flex-col h-full">
+              <div 
+                key={company.id} 
+                className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 flex flex-col h-full transform hover:-translate-y-1"
+              >
                 
                 {/* Capa / Header do Card */}
                 <div className="h-32 bg-emerald-50 relative">
                   <div className="absolute -bottom-8 left-6">
-                    <div className="w-20 h-20 rounded-xl bg-white p-1 shadow-md">
+                    {/* AQUI: O evento onClick está APENAS na div da Logo */}
+                    <div 
+                      onClick={() => setSelectedCompany(company)}
+                      className="w-20 h-20 rounded-xl bg-white p-1 shadow-md group-hover:scale-105 transition-transform cursor-pointer"
+                      title="Clique para ver detalhes do restaurante"
+                    >
                       <div className="w-full h-full rounded-lg bg-emerald-100 flex items-center justify-center font-serif text-2xl font-bold text-emerald-700 overflow-hidden">
                         {company.logo_path ? (
                           <img src={company.logo_path} alt={company.name} className="w-full h-full object-cover" />
@@ -109,9 +254,10 @@ export const RestaurantsList = ({ onNavigate }) => {
                       {company.segment || 'Gastronomia'}
                     </span>
                     
+                    {/* Botão Ver Vagas (Navegação Direta) */}
                     <button 
-                      onClick={() => onNavigate('jobs')} // Idealmente filtraria por empresa
-                      className="text-sm font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1"
+                      onClick={() => onNavigate('jobs')} 
+                      className="text-sm font-bold text-emerald-700 group-hover:text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       Ver vagas <ExternalLink size={14} />
                     </button>

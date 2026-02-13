@@ -135,10 +135,10 @@ export const AdminCreateJob = ({ setAdminView, user, showToast, jobToEdit }) => 
             <label className="block text-sm font-medium text-emerald-900/80">Tipo de Contrato</label>
             <select value={form.contract_type} onChange={set('contract_type')}
               className="w-full px-5 py-3 bg-white/80 border border-emerald-100 rounded-xl text-emerald-950 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-              <option value="clt">Regime CLT</option>
-              <option value="pj">PJ / Freelancer</option>
-              <option value="estagio">Estágio</option>
+              <option value="clt">CLT</option>
+              <option value="free">Freelancer Fixo</option>
               <option value="extra">Extra (Diária)</option>
+              <option value="estagio">Estágio</option>
             </select>
           </div>
         </div>
@@ -161,12 +161,8 @@ export const AdminCreateJob = ({ setAdminView, user, showToast, jobToEdit }) => 
             <label className="block text-sm font-medium text-emerald-900/80">Período / Turno</label>
             <select value={form.work_schedule} onChange={set('work_schedule')}
               className="w-full px-5 py-3 bg-white/80 border border-emerald-100 rounded-xl text-emerald-950 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-              <option value="integral">Integral (Comercial)</option>
-              <option value="noturno">Noturno</option>
-              <option value="diurno">Diurno / Manhã</option>
-              <option value="tarde">Tarde / Noite</option>
-              <option value="escala_6x1">Escala 6x1</option>
-              <option value="escala_12x36">Escala 12x36</option>
+              <option value="comercial">Manhã / Tarde</option>
+              <option value="noturno">Tarde / Noite</option>
               <option value="flexivel">Horário Flexível</option>
             </select>
           </div>

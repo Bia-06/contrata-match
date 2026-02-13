@@ -1,6 +1,6 @@
 // src/pages/admin/AdminCandidates.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Check, X, Star, Circle, Briefcase, Inbox, FileText, Download, MapPin, User } from 'lucide-react';
+import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Check, X, Star, Circle, Briefcase, Inbox, FileText, Download, MapPin, User, Clock, DollarSign } from 'lucide-react';
 import { dataService } from './services/dataService';
 import { publicService } from '../../services/publicService';
 
@@ -19,7 +19,6 @@ export const AdminCandidates = ({ user }) => {
     setTimeout(() => setToast(null), 2500);
   };
 
-  // ── Carregar candidaturas ──
   useEffect(() => {
     if (!user?.companyId) return;
     const load = async () => {
@@ -35,13 +34,11 @@ export const AdminCandidates = ({ user }) => {
     load();
   }, [user?.companyId]);
 
-  // ── Atualizar status ──
   const updateStatus = async (id, newStatus) => {
     try {
       await dataService.updateApplicationStatus(id, newStatus);
       setApplications(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
       setOpenMenuId(null);
-
       const labels = {
         approved: '✅ Candidato aprovado!',
         rejected: '❌ Candidato reprovado.',
@@ -55,21 +52,16 @@ export const AdminCandidates = ({ user }) => {
     }
   };
 
-  // ── Download do currículo ──
   const handleDownloadResume = async (app) => {
     if (!app.resume_path || app.resume_path === 'not_provided' || app.resume_path === 'upload_failed') {
       showToast('Currículo não disponível.', 'error');
       return;
     }
-
     setDownloadingResume(app.id);
     try {
       const url = await publicService.getResumeUrl(app.resume_path);
-      if (url) {
-        window.open(url, '_blank');
-      } else {
-        showToast('Não foi possível acessar o currículo.', 'error');
-      }
+      if (url) { window.open(url, '_blank'); }
+      else { showToast('Não foi possível acessar o currículo.', 'error'); }
     } catch (err) {
       console.error('Erro ao baixar currículo:', err);
       showToast('Erro ao acessar currículo.', 'error');
@@ -78,38 +70,24 @@ export const AdminCandidates = ({ user }) => {
     }
   };
 
-  // ── Helpers de formatação ──
   const formatAvailability = (val) => {
-    const map = {
-      'imediata': 'Imediata', '1_semana': '1 semana', '2_semanas': '2 semanas',
-      '1_mes': '1 mês', 'a_combinar': 'A combinar',
-    };
+    const map = { 'imediata': 'Imediata', '1_semana': '1 semana', '2_semanas': '2 semanas', '1_mes': '1 mês', 'a_combinar': 'A combinar' };
     return map[val] || val || null;
   };
 
-  const hasResume = (app) => {
-    return app.resume_path && app.resume_path !== 'not_provided' && app.resume_path !== 'upload_failed';
-  };
+  const hasResume = (app) => app.resume_path && app.resume_path !== 'not_provided' && app.resume_path !== 'upload_failed';
 
-  // ── Lista de vagas únicas (para o filtro) ──
-  const jobTitles = useMemo(() => {
-    const titles = [...new Set(applications.map(a => a.job_title))];
-    return titles.sort();
-  }, [applications]);
+  const jobTitles = useMemo(() => [...new Set(applications.map(a => a.job_title))].sort(), [applications]);
 
-  // ── Filtragem ──
   const filteredApps = useMemo(() => {
     return applications.filter(app => {
-      const matchesSearch =
-        app.candidate_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        app.job_title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = app.candidate_name.toLowerCase().includes(searchTerm.toLowerCase()) || app.job_title.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesJob = selectedJob === 'all' || app.job_title === selectedJob;
       const matchesTab = activeTab === 'all' || app.status === activeTab;
       return matchesSearch && matchesJob && matchesTab;
     });
   }, [applications, searchTerm, selectedJob, activeTab]);
 
-  // ── Contadores ──
   const getTabCount = (status) => {
     return applications.filter(app => {
       const matchesJob = selectedJob === 'all' || app.job_title === selectedJob;
@@ -150,7 +128,6 @@ export const AdminCandidates = ({ user }) => {
   return (
     <div className="animate-[fadeInUp_0.5s_ease-out_forwards] pb-20" onClick={() => setOpenMenuId(null)}>
 
-      {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-[100] animate-[fadeIn_0.3s_ease-out]">
           <div className={`px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-medium ${toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-emerald-900 text-white'}`}>
@@ -159,13 +136,11 @@ export const AdminCandidates = ({ user }) => {
         </div>
       )}
 
-      {/* Cabeçalho */}
       <div className="mb-8">
         <h1 className="text-3xl font-serif font-bold text-emerald-950 mb-2">Currículos</h1>
         <p className="text-emerald-900/60">Gerencie as candidaturas recebidas para suas vagas.</p>
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-900/30" size={20} />
@@ -183,7 +158,6 @@ export const AdminCandidates = ({ user }) => {
         </div>
       </div>
 
-      {/* Abas de Status */}
       <div className="flex flex-wrap gap-2 mb-8 border-b border-stone-100 pb-2">
         {tabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -193,7 +167,6 @@ export const AdminCandidates = ({ user }) => {
         ))}
       </div>
 
-      {/* Lista de Cards */}
       <div className="space-y-4">
         {filteredApps.length > 0 ? (
           filteredApps.map((app) => {
@@ -203,12 +176,10 @@ export const AdminCandidates = ({ user }) => {
                 className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition-all relative group ${app.status === 'approved' ? 'border-emerald-200' : app.status === 'rejected' ? 'border-red-100 opacity-75' : 'border-emerald-50'}`}>
                 <div className="flex flex-col md:flex-row gap-6">
 
-                  {/* Avatar */}
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold shrink-0 border-2 border-white shadow-sm ${app.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : app.status === 'rejected' ? 'bg-red-50 text-red-400' : 'bg-stone-100 text-stone-500'}`}>
                     {app.candidate_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                   </div>
 
-                  {/* Conteúdo */}
                   <div className="flex-1">
                     <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
                       <h3 className="text-lg font-bold text-emerald-950 group-hover:text-orange-600 transition-colors">{app.candidate_name}</h3>
@@ -228,34 +199,32 @@ export const AdminCandidates = ({ user }) => {
                       Aplicou para <span className="font-bold">{app.job_title}</span>
                     </p>
 
-                    {/* Linha de detalhes extras */}
+                    {/* Detalhes extras — ícones Lucide */}
                     <div className="flex flex-wrap gap-3 text-xs text-stone-500 mb-3 pb-3 border-b border-stone-50">
                       {app.availability && (
                         <span className="inline-flex items-center gap-1 bg-stone-50 px-2 py-1 rounded-lg">
-                          🕐 {formatAvailability(app.availability)}
+                          <Clock size={11} className="text-stone-400" /> {formatAvailability(app.availability)}
                         </span>
                       )}
                       {app.salary_expectation && (
                         <span className="inline-flex items-center gap-1 bg-stone-50 px-2 py-1 rounded-lg">
-                          💰 R$ {Number(app.salary_expectation).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          <DollarSign size={11} className="text-stone-400" /> R$ {Number(app.salary_expectation).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </span>
                       )}
                       {app.candidate_city && (
                         <span className="inline-flex items-center gap-1 bg-stone-50 px-2 py-1 rounded-lg">
-                          <MapPin size={11} /> {app.candidate_city}
+                          <MapPin size={11} className="text-stone-400" /> {app.candidate_city}
                           {app.candidate_neighborhood ? `, ${app.candidate_neighborhood}` : ''}
                         </span>
                       )}
                     </div>
 
-                    {/* Experiência/notas se tiver */}
                     {app.notes && (
                       <p className="text-sm text-stone-500 mb-3 italic leading-relaxed line-clamp-2">
                         "{app.notes}"
                       </p>
                     )}
 
-                    {/* Contato + currículo */}
                     <div className="flex flex-wrap items-center gap-4 text-sm text-emerald-900/60">
                       {app.candidate_phone && (
                         <a href={`https://wa.me/55${app.candidate_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
@@ -276,7 +245,6 @@ export const AdminCandidates = ({ user }) => {
                         {new Date(app.created_at).toLocaleDateString('pt-BR')}
                       </div>
 
-                      {/* Botão de currículo */}
                       {hasResume(app) && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDownloadResume(app); }}
@@ -294,7 +262,6 @@ export const AdminCandidates = ({ user }) => {
                     </div>
                   </div>
 
-                  {/* Status e Ações */}
                   <div className="flex flex-row md:flex-col justify-between items-end gap-4 pl-4 md:border-l border-stone-100 min-w-[140px]">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(app.status)}`}>
                       {getStatusLabel(app.status)}

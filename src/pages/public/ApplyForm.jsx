@@ -433,7 +433,7 @@ export const ApplyForm = ({ selectedJob, onNavigate, showToast }) => {
                       </div>
                       <span className="text-xs text-stone-500 leading-relaxed">
                         Autorizo o tratamento dos meus dados pessoais para fins de recrutamento e seleção, conforme a{' '}
-                        <span className="text-emerald-700 font-medium">Lei Geral de Proteção de Dados (LGPD)</span>.
+                        <span className="text-emerald-700 font-medium">Lei Geral de Proteção de Dados (LGPD){reqMark}</span>.
                       </span>
                     </label>
 

@@ -23,7 +23,7 @@ import { Footer } from './components/layout/Footer';
 // Serviços
 import { authService } from './pages/admin/services/authService'; 
 
-// --- Textos Legais (mantidos iguais) ---
+// --- Textos Legais ---
 const LEGAL_CONTENT = {
   terms: {
     title: "Termos de Uso",
@@ -126,6 +126,14 @@ export default function App() {
     recoverSession();
   }, []);
 
+  // FIX: Redireciona para login se tentar acessar admin sem estar logado
+  // (separado do navigate para não bloquear o setUser + setView do login)
+  useEffect(() => {
+    if (!isCheckingSession && view === 'adminDashboard' && !user) {
+      setView('adminLogin');
+    }
+  }, [view, user, isCheckingSession]);
+
   useEffect(() => {
     const { data } = authService.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
@@ -137,13 +145,10 @@ export default function App() {
     return () => data?.subscription?.unsubscribe();
   }, []);
 
+  // FIX: navigate não bloqueia mais — a proteção está no useEffect acima
   const navigate = (target, params = null) => {
     if (params) setSelectedJob(params);
-    if (target === 'adminDashboard' && !user) {
-      setView('adminLogin');
-    } else {
-      setView(target);
-    }
+    setView(target);
     setIsMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -180,7 +185,6 @@ export default function App() {
     onOpenModal: setActiveModal 
   };
 
-  // Helper para saber se estamos em uma página pública que precisa de Footer
   const isPublicPage = ['landing', 'jobs', 'restaurants', 'about', 'apply', 'adminLogin'].includes(view);
 
   return (
@@ -197,7 +201,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Conteúdo Principal (flex-1 para empurrar o footer) */}
       <div className="flex-1">
         {view === 'landing' && (
           <LandingPage 
@@ -225,7 +228,6 @@ export default function App() {
         )}
       </div>
 
-      {/* Footer Global (Só aparece nas páginas públicas) */}
       {isPublicPage && <Footer onNavigate={navigate} onOpenModal={setActiveModal} />}
     </div>
   );

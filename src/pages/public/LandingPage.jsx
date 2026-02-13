@@ -167,9 +167,9 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen, onOpenModal 
 
               <div className="flex gap-6 overflow-x-auto pb-8 snap-x hide-scrollbar">
                 {[
-                  { icon: ChefHat, label: 'Cozinha Quente', color: 'bg-orange-50 text-orange-600' },
-                  { icon: Wine, label: 'Sommelier & Bar', color: 'bg-purple-50 text-purple-600' },
-                  { icon: Coffee, label: 'Salão & Café', color: 'bg-amber-50 text-amber-600' },
+                  { icon: ChefHat, label: 'Cozinha', color: 'bg-orange-50 text-orange-600' },
+                  { icon: Wine, label: 'Bar', color: 'bg-purple-50 text-purple-600' },
+                  { icon: Coffee, label: 'Salão', color: 'bg-amber-50 text-amber-600' },
                   { icon: Store, label: 'Gerência', color: 'bg-blue-50 text-blue-600' },
                   { icon: UtensilsCrossed, label: 'Auxiliares', color: 'bg-emerald-50 text-emerald-600' },
                 ].map((cat, i) => (

@@ -1,36 +1,58 @@
-// src/pages/public/RestaurantsList.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, MapPin, ExternalLink, Utensils, Loader2, X, Globe, Phone, Mail } from 'lucide-react';
+import { Search, MapPin, ExternalLink, Utensils, Loader2, X, Globe, Phone, Mail, Share2, Check } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
 
 // --- Componente do Modal de Detalhes ---
 const RestaurantModal = ({ company, onClose, onNavigate }) => {
+  const [copied, setCopied] = useState(false);
+
   if (!company) return null;
 
   const handleVerVagas = () => {
     onClose();
-    // Navega para a página de vagas (o ideal seria filtrar por empresa, 
-    // mas por enquanto vai para a lista geral conforme solicitado)
     onNavigate('jobs');
+  };
+
+  // Função para copiar link
+  const handleShare = () => {
+    // Monta a URL atual (que já tem o ID graças ao RestaurantsList)
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-emerald-950/60 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]" onClick={onClose}>
-      {/* Container do Modal (o clique aqui não fecha) */}
       <div 
         className="bg-white rounded-[2rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-emerald-100 animate-[scaleIn_0.3s_ease-out] overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
         
-        {/* Botão Fechar */}
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-stone-100 text-stone-500 hover:text-orange-600 transition-colors z-20 shadow-sm"
-        >
-          <X size={24} />
-        </button>
+        {/* Botões de Ação no Topo */}
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
+          {/* Botão Compartilhar */}
+          <button 
+            onClick={handleShare}
+            className="p-2 rounded-full bg-white/90 hover:bg-emerald-50 text-emerald-700 transition-colors shadow-sm flex items-center gap-2 group border border-emerald-100/50"
+            title="Copiar link deste restaurante"
+          >
+            {copied ? <Check size={20} className="text-emerald-600" /> : <Share2 size={20} />}
+            <span className={`text-xs font-bold overflow-hidden transition-all duration-300 ${copied ? 'w-auto px-1' : 'w-0 group-hover:w-auto group-hover:px-1'}`}>
+              {copied ? 'Copiado!' : 'Copiar Link'}
+            </span>
+          </button>
+
+          {/* Botão Fechar */}
+          <button 
+            onClick={onClose}
+            className="p-2 rounded-full bg-white/90 hover:bg-stone-100 text-stone-500 hover:text-orange-600 transition-colors z-20 shadow-sm border border-stone-100"
+          >
+            <X size={24} />
+          </button>
+        </div>
 
         {/* Header com Capa e Logo */}
         <div className="relative h-40 bg-emerald-50 shrink-0">
@@ -95,7 +117,6 @@ const RestaurantModal = ({ company, onClose, onNavigate }) => {
               </div>
             )}
 
-            {/* Exibe Telefone se existir */}
             {company.phone && (
               <div className="bg-stone-50 p-4 rounded-xl flex items-start gap-3">
                 <Phone className="text-orange-500 shrink-0 mt-0.5" size={18} />
@@ -106,7 +127,6 @@ const RestaurantModal = ({ company, onClose, onNavigate }) => {
               </div>
             )}
 
-            {/* Exibe Email se existir */}
             {company.email && (
               <div className="bg-stone-50 p-4 rounded-xl flex items-start gap-3">
                 <Mail className="text-orange-500 shrink-0 mt-0.5" size={18} />
@@ -156,6 +176,38 @@ export const RestaurantsList = ({ onNavigate }) => {
     load();
   }, []);
 
+  // --- LÓGICA DE DEEP LINK ---
+  // 1. Ao carregar as empresas, verifica se tem ID na URL para abrir o modal
+  useEffect(() => {
+    if (companies.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const restaurantId = params.get('restaurante');
+
+      if (restaurantId) {
+        const found = companies.find(c => c.id.toString() === restaurantId);
+        if (found) {
+          setSelectedCompany(found);
+        }
+      }
+    }
+  }, [companies]);
+
+  // 2. Função para abrir modal e atualizar a URL
+  const handleOpenModal = (company) => {
+    setSelectedCompany(company);
+    // Adiciona o parâmetro na URL sem recarregar a página
+    const newUrl = `${window.location.pathname}?restaurante=${company.id}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+  };
+
+  // 3. Função para fechar modal e limpar a URL
+  const handleCloseModal = () => {
+    setSelectedCompany(null);
+    // Remove o parâmetro da URL
+    const newUrl = window.location.pathname;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+  };
+
   const filtered = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return companies.filter(c => 
@@ -171,7 +223,7 @@ export const RestaurantsList = ({ onNavigate }) => {
 
       <RestaurantModal 
         company={selectedCompany} 
-        onClose={() => setSelectedCompany(null)} 
+        onClose={handleCloseModal} 
         onNavigate={onNavigate}
       />
 
@@ -218,7 +270,7 @@ export const RestaurantsList = ({ onNavigate }) => {
                   <div className="absolute -bottom-8 left-6">
                     {/* AQUI: O evento onClick está APENAS na div da Logo */}
                     <div 
-                      onClick={() => setSelectedCompany(company)}
+                      onClick={() => handleOpenModal(company)}
                       className="w-20 h-20 rounded-xl bg-white p-1 shadow-md group-hover:scale-105 transition-transform cursor-pointer"
                       title="Clique para ver detalhes do restaurante"
                     >

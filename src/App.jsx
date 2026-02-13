@@ -92,7 +92,15 @@ const LegalModal = ({ type, onClose }) => {
 };
 
 export default function App() {
-  const [view, setView] = useState('landing');
+  // --- LÓGICA DE URL ---
+  // Verifica se existe um parâmetro ?restaurante=ID na URL ao carregar
+  const getInitialView = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('restaurante')) return 'restaurants';
+    return 'landing';
+  };
+
+  const [view, setView] = useState(getInitialView); // Inicia com a view correta
   const [adminView, setAdminView] = useState('dashboard');
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -115,6 +123,7 @@ export default function App() {
             companyId: company?.id || null,
             logo: company?.logo_path || null
           });
+          // Se estava na landing ou login e logou, vai pro dashboard
           if (view === 'landing' || view === 'adminLogin') setView('adminDashboard');
         }
       } catch (err) {
@@ -127,7 +136,6 @@ export default function App() {
   }, []);
 
   // FIX: Redireciona para login se tentar acessar admin sem estar logado
-  // (separado do navigate para não bloquear o setUser + setView do login)
   useEffect(() => {
     if (!isCheckingSession && view === 'adminDashboard' && !user) {
       setView('adminLogin');
@@ -145,11 +153,16 @@ export default function App() {
     return () => data?.subscription?.unsubscribe();
   }, []);
 
-  // FIX: navigate não bloqueia mais — a proteção está no useEffect acima
   const navigate = (target, params = null) => {
     if (params) setSelectedJob(params);
     setView(target);
     setIsMenuOpen(false);
+    
+    // Limpa parâmetros da URL ao navegar manualmente para outras páginas
+    if (target !== 'restaurants') {
+      window.history.pushState({}, '', window.location.pathname);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

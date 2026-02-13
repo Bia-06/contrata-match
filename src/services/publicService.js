@@ -33,8 +33,8 @@ export const publicService = {
       type: formatContractType(job.contract_type),
       contract_type: job.contract_type,
       seniority: job.seniority,
-      // NOVO CAMPO: Período de Trabalho
-      work_schedule: job.work_schedule, 
+      work_schedule: job.work_schedule || null,
+      age_range: job.age_range || null,
       posted: formatDate(job.created_at),
       created_at: job.created_at,
     }));
@@ -52,10 +52,14 @@ export const publicService = {
   },
 
   // ── ENVIAR CANDIDATURA (anônimo) ──
-  async submitApplication({ jobId, companyId, candidateName, candidateEmail, candidatePhone, candidateCity, candidateState, experience, salaryExpectation, availability, resumeFile, consentLgpd }) {
+  async submitApplication({
+    jobId, companyId, candidateName, candidateEmail, candidatePhone,
+    candidateAge, candidateCity, candidateNeighborhood,
+    experience, salaryExpectation, availability, resumeFile, consentLgpd
+  }) {
     let resumePath = 'not_provided';
 
-    // 1. Upload do currículo (se tiver)
+    // Upload do currículo primeiro (se tiver)
     if (resumeFile) {
       const fileExt = resumeFile.name.split('.').pop();
       const fileName = `${companyId}/${jobId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -65,35 +69,74 @@ export const publicService = {
         .upload(fileName, resumeFile, { contentType: resumeFile.type });
 
       if (uploadError) {
-        console.error('Erro no upload:', uploadError);
+        console.error('Erro no upload do currículo:', uploadError);
         resumePath = 'upload_failed';
       } else {
         resumePath = fileName;
       }
     }
 
-    // 2. Inserir candidatura
-    const { error } = await supabase
-      .from('applications')
-      .insert([{
-        job_id: jobId,
-        company_id: companyId,
-        candidate_name: candidateName,
-        candidate_email: candidateEmail,
-        candidate_phone: candidatePhone || null,
-        candidate_city: candidateCity || null,
-        candidate_state: candidateState || null,
-        availability: availability || null,
-        salary_expectation: salaryExpectation ? parseFloat(String(salaryExpectation).replace(/\D/g, '')) : null,
-        notes: experience || null,
-        resume_path: resumePath,
-        consent_lgpd: consentLgpd || false,
-        status: 'new',
-      }]);
+    // Monta payload base (colunas que existem com certeza)
+    const payload = {
+      job_id: jobId,
+      company_id: companyId,
+      candidate_name: candidateName,
+      candidate_email: candidateEmail || null,
+      candidate_phone: candidatePhone || null,
+      candidate_city: candidateCity || null,
+      availability: availability || null,
+      notes: experience || null,
+      resume_path: resumePath,
+      consent_lgpd: consentLgpd || false,
+      status: 'new',
+    };
 
-    if (error) throw error;
+    // salary_expectation: converte "R$ 2.500,00" para número
+    if (salaryExpectation) {
+      const digits = String(salaryExpectation).replace(/\D/g, '');
+      if (digits && !isNaN(Number(digits))) {
+        payload.salary_expectation = Number(digits) / 100;
+      }
+    }
+
+    // Campos novos (podem não existir na tabela)
+    if (candidateAge) payload.candidate_age = parseInt(candidateAge);
+    if (candidateNeighborhood) payload.candidate_neighborhood = candidateNeighborhood;
+
+    console.log('📋 Payload da candidatura:', JSON.stringify(payload, null, 2));
+
+    // Primeira tentativa com todos os campos
+    const { error } = await supabase.from('applications').insert([payload]);
+
+    if (error) {
+      console.error('❌ Erro Supabase:', error.message, '| code:', error.code, '| details:', error.details, '| hint:', error.hint);
+
+      // Se o erro for de coluna inexistente, tenta sem os campos novos
+      if (error.code === '42703' || error.message?.includes('column') || error.details?.includes('column')) {
+        console.warn('⚠️ Retentando sem campos novos...');
+        delete payload.candidate_age;
+        delete payload.candidate_neighborhood;
+
+        const { error: err2 } = await supabase.from('applications').insert([payload]);
+        if (err2) {
+          console.error('❌ Erro na 2ª tentativa:', err2.message, err2.code, err2.details);
+          throw err2;
+        }
+        return { success: true };
+      }
+
+      throw error;
+    }
 
     return { success: true };
+  },
+
+  // ── URL ASSINADA PARA DOWNLOAD DE CURRÍCULO ──
+  async getResumeUrl(resumePath) {
+    if (!resumePath || resumePath === 'not_provided' || resumePath === 'upload_failed') return null;
+    const { data, error } = await supabase.storage.from('resumes').createSignedUrl(resumePath, 3600);
+    if (error) { console.error('Erro URL currículo:', error); return null; }
+    return data.signedUrl;
   },
 };
 

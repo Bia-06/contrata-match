@@ -1,7 +1,8 @@
 // src/pages/admin/AdminCandidates.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Check, X, Star, Circle, Briefcase, Inbox } from 'lucide-react';
+import { Search, Filter, MoreVertical, Mail, Phone, Calendar, Check, X, Star, Circle, Briefcase, Inbox, FileText, Download, MapPin, User } from 'lucide-react';
 import { dataService } from './services/dataService';
+import { publicService } from '../../services/publicService';
 
 export const AdminCandidates = ({ user }) => {
   const [activeTab, setActiveTab] = useState('all');
@@ -10,6 +11,7 @@ export const AdminCandidates = ({ user }) => {
   const [selectedJob, setSelectedJob] = useState('all');
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingResume, setDownloadingResume] = useState(null);
 
   const [toast, setToast] = useState(null);
   const showToast = (msg, type = 'success') => {
@@ -51,6 +53,42 @@ export const AdminCandidates = ({ user }) => {
       console.error(err);
       showToast('Erro ao atualizar status.', 'error');
     }
+  };
+
+  // ── Download do currículo ──
+  const handleDownloadResume = async (app) => {
+    if (!app.resume_path || app.resume_path === 'not_provided' || app.resume_path === 'upload_failed') {
+      showToast('Currículo não disponível.', 'error');
+      return;
+    }
+
+    setDownloadingResume(app.id);
+    try {
+      const url = await publicService.getResumeUrl(app.resume_path);
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        showToast('Não foi possível acessar o currículo.', 'error');
+      }
+    } catch (err) {
+      console.error('Erro ao baixar currículo:', err);
+      showToast('Erro ao acessar currículo.', 'error');
+    } finally {
+      setDownloadingResume(null);
+    }
+  };
+
+  // ── Helpers de formatação ──
+  const formatAvailability = (val) => {
+    const map = {
+      'imediata': 'Imediata', '1_semana': '1 semana', '2_semanas': '2 semanas',
+      '1_mes': '1 mês', 'a_combinar': 'A combinar',
+    };
+    return map[val] || val || null;
+  };
+
+  const hasResume = (app) => {
+    return app.resume_path && app.resume_path !== 'not_provided' && app.resume_path !== 'upload_failed';
   };
 
   // ── Lista de vagas únicas (para o filtro) ──
@@ -174,38 +212,85 @@ export const AdminCandidates = ({ user }) => {
                   <div className="flex-1">
                     <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
                       <h3 className="text-lg font-bold text-emerald-950 group-hover:text-orange-600 transition-colors">{app.candidate_name}</h3>
+                      {app.candidate_age && (
+                        <span className="text-xs font-medium bg-stone-100 text-stone-500 px-2 py-0.5 rounded-full">
+                          {app.candidate_age} anos
+                        </span>
+                      )}
                       {app.status === 'reviewing' && (
                         <span className="flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">
                           <Star size={10} className="fill-amber-600" /> Em Destaque
                         </span>
                       )}
                     </div>
+
                     <p className="text-emerald-900 font-medium text-sm mb-3">
                       Aplicou para <span className="font-bold">{app.job_title}</span>
                     </p>
 
-                    {app.availability && (
-                      <p className="text-sm text-stone-500 mb-3 border-b border-stone-100 pb-3 leading-relaxed">
-                        Disponibilidade: {app.availability}
-                        {app.salary_expectation ? ` • Pretensão: R$ ${Number(app.salary_expectation).toLocaleString('pt-BR')}` : ''}
+                    {/* Linha de detalhes extras */}
+                    <div className="flex flex-wrap gap-3 text-xs text-stone-500 mb-3 pb-3 border-b border-stone-50">
+                      {app.availability && (
+                        <span className="inline-flex items-center gap-1 bg-stone-50 px-2 py-1 rounded-lg">
+                          🕐 {formatAvailability(app.availability)}
+                        </span>
+                      )}
+                      {app.salary_expectation && (
+                        <span className="inline-flex items-center gap-1 bg-stone-50 px-2 py-1 rounded-lg">
+                          💰 R$ {Number(app.salary_expectation).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      )}
+                      {app.candidate_city && (
+                        <span className="inline-flex items-center gap-1 bg-stone-50 px-2 py-1 rounded-lg">
+                          <MapPin size={11} /> {app.candidate_city}
+                          {app.candidate_neighborhood ? `, ${app.candidate_neighborhood}` : ''}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Experiência/notas se tiver */}
+                    {app.notes && (
+                      <p className="text-sm text-stone-500 mb-3 italic leading-relaxed line-clamp-2">
+                        "{app.notes}"
                       </p>
                     )}
 
-                    <div className="flex flex-wrap gap-6 text-sm text-emerald-900/60">
-                      <div className="flex items-center gap-2 hover:text-emerald-800 transition-colors cursor-pointer">
-                        <Mail size={16} className="text-emerald-900/40" />
-                        {app.candidate_email}
-                      </div>
+                    {/* Contato + currículo */}
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-emerald-900/60">
                       {app.candidate_phone && (
-                        <div className="flex items-center gap-2 hover:text-emerald-800 transition-colors cursor-pointer">
+                        <a href={`https://wa.me/55${app.candidate_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-2 hover:text-emerald-800 transition-colors">
                           <Phone size={16} className="text-emerald-900/40" />
                           {app.candidate_phone}
-                        </div>
+                        </a>
+                      )}
+                      {app.candidate_email && (
+                        <a href={`mailto:${app.candidate_email}`}
+                          className="flex items-center gap-2 hover:text-emerald-800 transition-colors">
+                          <Mail size={16} className="text-emerald-900/40" />
+                          {app.candidate_email}
+                        </a>
                       )}
                       <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-emerald-900/40" />
                         {new Date(app.created_at).toLocaleDateString('pt-BR')}
                       </div>
+
+                      {/* Botão de currículo */}
+                      {hasResume(app) && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDownloadResume(app); }}
+                          disabled={downloadingResume === app.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg text-xs font-bold transition-colors border border-orange-100"
+                        >
+                          {downloadingResume === app.id ? (
+                            <span className="w-3 h-3 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin"></span>
+                          ) : (
+                            <Download size={13} />
+                          )}
+                          Currículo
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -244,6 +329,15 @@ export const AdminCandidates = ({ user }) => {
                               className="w-full text-left px-4 py-3 text-sm hover:bg-amber-50 text-amber-600 flex items-center gap-2 font-medium">
                               <Star size={16} /> Destacar
                             </button>
+                            {hasResume(app) && (
+                              <>
+                                <div className="h-px bg-stone-100 my-1"></div>
+                                <button onClick={() => { setOpenMenuId(null); handleDownloadResume(app); }}
+                                  className="w-full text-left px-4 py-3 text-sm hover:bg-orange-50 text-orange-600 flex items-center gap-2 font-medium">
+                                  <Download size={16} /> Ver Currículo
+                                </button>
+                              </>
+                            )}
                             <div className="h-px bg-stone-100 my-1"></div>
                             <button onClick={() => updateStatus(app.id, 'new')}
                               className="w-full text-left px-4 py-3 text-sm hover:bg-stone-50 text-stone-500 flex items-center gap-2">

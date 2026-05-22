@@ -1,6 +1,8 @@
+// src/components/layout/AdminLayout.jsx
 import React from 'react';
 import { LayoutDashboard, Users, FileText, Settings, LogOut } from 'lucide-react';
 import { ModernLogo } from '../ui/ModernLogo';
+import { NotificationButton } from '../NotificationButton';
 
 export const AdminLayout = ({ children, activeView, onViewChange, onLogout, user }) => {
   const menuItems = [
@@ -28,9 +30,15 @@ export const AdminLayout = ({ children, activeView, onViewChange, onLogout, user
           ))}
         </nav>
         <div className="p-6 border-t border-emerald-900/5">
-          <button onClick={onLogout} className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl w-full text-sm font-medium transition-colors">
-            <LogOut size={18} /> Sair
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onLogout}
+              className="flex-1 flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl text-sm font-medium transition-colors"
+            >
+              <LogOut size={18} /> Sair
+            </button>
+            <NotificationButton user={user} />
+          </div>
         </div>
       </aside>
       <main className="flex-1 md:ml-72 p-6 md:p-12 overflow-y-auto h-screen bg-stone-50/50">

@@ -22,6 +22,8 @@ import { Footer } from './components/layout/Footer';
 
 // Serviços
 import { authService } from './pages/admin/services/authService'; 
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { PWAInstallButton } from './components/PWAInstallButton';
 
 // --- Textos Legais ---
 const LEGAL_CONTENT = {
@@ -84,6 +86,8 @@ const LegalModal = ({ type, onClose }) => {
             className="px-8 py-3 bg-emerald-900 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
           >
             Entendi
+            <PWAUpdatePrompt />
+<PWAInstallButton />
           </button>
         </div>
       </div>

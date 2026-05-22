@@ -18,12 +18,14 @@ import { AdminCandidates } from './pages/admin/AdminCandidates';
 import { AdminProfile } from './pages/admin/AdminProfile';
 
 // Componentes Layout Global
-import { Footer } from './components/layout/Footer'; 
+import { Footer } from './components/layout/Footer';
 
-// Serviços
-import { authService } from './pages/admin/services/authService'; 
+// Componentes PWA
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 import { PWAInstallButton } from './components/PWAInstallButton';
+
+// Serviços
+import { authService } from './pages/admin/services/authService';
 
 // --- Textos Legais ---
 const LEGAL_CONTENT = {
@@ -63,10 +65,10 @@ const LegalModal = ({ type, onClose }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-emerald-950/60 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]">
       <div className="bg-white rounded-[2rem] w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl border border-emerald-100 animate-[scaleIn_0.3s_ease-out]">
-        
+
         <div className="flex justify-between items-center p-8 border-b border-emerald-50">
           <h2 className="text-3xl font-serif font-bold text-emerald-950">{content.title}</h2>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-full bg-stone-100 hover:bg-orange-100 text-stone-500 hover:text-orange-600 transition-colors"
           >
@@ -81,13 +83,11 @@ const LegalModal = ({ type, onClose }) => {
         </div>
 
         <div className="p-6 border-t border-emerald-50 bg-stone-50 rounded-b-[2rem] flex justify-end">
-          <button 
+          <button
             onClick={onClose}
             className="px-8 py-3 bg-emerald-900 text-white font-bold rounded-xl hover:bg-emerald-800 transition-colors"
           >
             Entendi
-            <PWAUpdatePrompt />
-<PWAInstallButton />
           </button>
         </div>
       </div>
@@ -96,15 +96,13 @@ const LegalModal = ({ type, onClose }) => {
 };
 
 export default function App() {
-  // --- LÓGICA DE URL ---
-  // Verifica se existe um parâmetro ?restaurante=ID na URL ao carregar
   const getInitialView = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('restaurante')) return 'restaurants';
     return 'landing';
   };
 
-  const [view, setView] = useState(getInitialView); 
+  const [view, setView] = useState(getInitialView);
   const [adminView, setAdminView] = useState('dashboard');
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -127,7 +125,6 @@ export default function App() {
             companyId: company?.id || null,
             logo: company?.logo_path || null
           });
-          // Se estava na landing ou login e logou, vai pro dashboard
           if (view === 'landing' || view === 'adminLogin') setView('adminDashboard');
         }
       } catch (err) {
@@ -160,8 +157,7 @@ export default function App() {
     if (params) setSelectedJob(params);
     setView(target);
     setIsMenuOpen(false);
-    
-    // Limpa parâmetros da URL ao navegar manualmente para outras páginas
+
     if (target !== 'restaurants') {
       window.history.pushState({}, '', window.location.pathname);
     }
@@ -171,7 +167,7 @@ export default function App() {
 
   const handleAdminViewChange = (viewName, data = null) => {
     setAdminView(viewName);
-    if (viewName === 'createJob') setSelectedJob(data); 
+    if (viewName === 'createJob') setSelectedJob(data);
   };
 
   const showToast = (msg) => {
@@ -198,14 +194,18 @@ export default function App() {
 
   const pageProps = {
     onNavigate: navigate,
-    onOpenModal: setActiveModal 
+    onOpenModal: setActiveModal
   };
 
   const isPublicPage = ['landing', 'jobs', 'restaurants', 'about', 'apply', 'adminLogin'].includes(view);
 
   return (
     <div className="antialiased text-emerald-950 font-sans flex flex-col min-h-screen">
-      
+
+      {/* Componentes PWA (globais) */}
+      <PWAUpdatePrompt />
+      <PWAInstallButton />
+
       {activeModal && <LegalModal type={activeModal} onClose={() => setActiveModal(null)} />}
 
       {toast && (
@@ -219,18 +219,18 @@ export default function App() {
 
       <div className="flex-1">
         {view === 'landing' && (
-          <LandingPage 
+          <LandingPage
             {...pageProps}
-            onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} 
-            isMenuOpen={isMenuOpen} 
+            onMenuToggle={() => setIsMenuOpen(!isMenuOpen)}
+            isMenuOpen={isMenuOpen}
           />
         )}
-        
+
         {view === 'jobs' && <JobsList {...pageProps} filterCompanyId={selectedJob?.filterCompanyId} />}
         {view === 'restaurants' && <RestaurantsList {...pageProps} />}
         {view === 'about' && <AboutPage {...pageProps} />}
         {view === 'apply' && <ApplyForm selectedJob={selectedJob} {...pageProps} showToast={showToast} />}
-        
+
         {view === 'adminLogin' && <AdminLogin {...pageProps} setUser={setUser} />}
 
         {view === 'adminDashboard' && user && (

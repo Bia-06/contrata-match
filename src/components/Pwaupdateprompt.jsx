@@ -43,7 +43,7 @@ export const PWAUpdatePrompt = () => {
           <div className="flex-1 min-w-0">
             {needRefresh ? (
               <>
-                <h3 className="font-bold text-emerald-950 mb-1">Nova versão disponível</h3>
+                <h3 className="font-bold text-emerald-950 mb-1">Nova versão disponível!</h3>
                 <p className="text-sm text-emerald-900/60 mb-3">
                   Clique para atualizar e obter as últimas melhorias.
                 </p>

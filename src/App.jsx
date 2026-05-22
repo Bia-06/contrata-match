@@ -21,7 +21,7 @@ import { AdminProfile } from './pages/admin/AdminProfile';
 import { Footer } from './components/layout/Footer';
 
 // Componentes PWA
-import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { PWAUpdatePrompt } from './components/Pwaupdateprompt';
 import { PWAInstallButton } from './components/PWAInstallButton';
 
 // Serviços

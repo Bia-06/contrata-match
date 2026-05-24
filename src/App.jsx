@@ -21,7 +21,7 @@ import { AdminProfile } from './pages/admin/AdminProfile';
 import { Footer } from './components/layout/Footer';
 
 // Componente PWA
-import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { PwaupdatePrompt } from './components/PwaupdatePrompt';
 
 // Serviços
 import { authService } from './pages/admin/services/authService';
@@ -223,7 +223,7 @@ export default function App() {
     <div className="antialiased text-emerald-950 font-sans flex flex-col min-h-screen">
 
       {/* Aviso de nova versão (só aparece quando há update) */}
-      <PWAUpdatePrompt />
+      <PwaupdatePrompt />
 
       {activeModal && <LegalModal type={activeModal} onClose={() => setActiveModal(null)} />}
 

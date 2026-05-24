@@ -3,6 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@media screen and (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 :root {
   --font-serif: 'Playfair Display', serif;
   --font-sans: 'Inter', sans-serif;

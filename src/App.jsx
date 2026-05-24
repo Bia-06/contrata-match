@@ -20,9 +20,8 @@ import { AdminProfile } from './pages/admin/AdminProfile';
 // Componentes Layout Global
 import { Footer } from './components/layout/Footer';
 
-// Componentes PWA
-import { PWAUpdatePrompt } from './components/Pwaupdateprompt';
-import { PWAInstallButton } from './components/PWAInstallButton';
+// Componente PWA
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 
 // Serviços
 import { authService } from './pages/admin/services/authService';
@@ -95,10 +94,27 @@ const LegalModal = ({ type, onClose }) => {
   );
 };
 
+// ── Helper: detecta se está rodando como PWA instalado ──
+const isRunningAsPWA = () => {
+  // Display-mode standalone = PWA instalado (Android/Desktop)
+  if (window.matchMedia('(display-mode: standalone)').matches) return true;
+  // navigator.standalone = PWA instalado no iOS
+  if (window.navigator.standalone === true) return true;
+  return false;
+};
+
 export default function App() {
   const getInitialView = () => {
     const params = new URLSearchParams(window.location.search);
+
+    // Se tem ?restaurante=... abre a lista (vem de link compartilhado)
     if (params.get('restaurante')) return 'restaurants';
+
+    // Se está rodando como PWA instalado, vai direto pro fluxo admin
+    // (o useEffect de recoverSession decide se vai pro login ou dashboard)
+    if (isRunningAsPWA()) return 'adminLogin';
+
+    // Navegador normal: landing page
     return 'landing';
   };
 
@@ -125,6 +141,8 @@ export default function App() {
             companyId: company?.id || null,
             logo: company?.logo_path || null
           });
+          // Se tem sessão ativa, vai direto pro dashboard
+          // (independente se está em landing, login ou PWA)
           if (view === 'landing' || view === 'adminLogin') setView('adminDashboard');
         }
       } catch (err) {
@@ -146,7 +164,8 @@ export default function App() {
     const { data } = authService.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         setUser(null);
-        setView('landing');
+        // Quando faz logout em PWA, vai pro login. Em navegador, vai pra landing.
+        setView(isRunningAsPWA() ? 'adminLogin' : 'landing');
         setAdminView('dashboard');
       }
     });
@@ -178,7 +197,8 @@ export default function App() {
   const handleLogout = async () => {
     await authService.logout();
     setUser(null);
-    navigate('landing');
+    // Em PWA, volta pra login. Em navegador, volta pra landing.
+    navigate(isRunningAsPWA() ? 'adminLogin' : 'landing');
   };
 
   if (isCheckingSession) {
@@ -202,9 +222,8 @@ export default function App() {
   return (
     <div className="antialiased text-emerald-950 font-sans flex flex-col min-h-screen">
 
-      {/* Componentes PWA (globais) */}
+      {/* Aviso de nova versão (só aparece quando há update) */}
       <PWAUpdatePrompt />
-      <PWAInstallButton />
 
       {activeModal && <LegalModal type={activeModal} onClose={() => setActiveModal(null)} />}
 
@@ -244,7 +263,8 @@ export default function App() {
         )}
       </div>
 
-      {isPublicPage && <Footer onNavigate={navigate} onOpenModal={setActiveModal} />}
+      {/* Footer só aparece em modo navegador, não no PWA */}
+      {isPublicPage && !isRunningAsPWA() && <Footer onNavigate={navigate} onOpenModal={setActiveModal} />}
     </div>
   );
 }

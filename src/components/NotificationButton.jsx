@@ -1,6 +1,6 @@
 // src/components/NotificationButton.jsx
 import React, { useState, useEffect } from 'react';
-import { Bell, BellOff, BellRing, Loader2, X, Check, Send } from 'lucide-react';
+import { Bell, BellOff, BellRing, Loader2, X, Check } from 'lucide-react';
 import { pushService } from '../services/pushService';
 
 export const NotificationButton = ({ user }) => {
@@ -58,19 +58,6 @@ export const NotificationButton = ({ user }) => {
     } catch (err) {
       console.error(err);
       showToast('Erro ao desativar.', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleTest = async () => {
-    setLoading(true);
-    try {
-      const result = await pushService.sendTestNotification(user.id);
-      showToast(`Notificação de teste enviada! Aguarde alguns segundos.`);
-    } catch (err) {
-      console.error(err);
-      showToast('Erro ao enviar teste.', 'error');
     } finally {
       setLoading(false);
     }
@@ -140,15 +127,9 @@ export const NotificationButton = ({ user }) => {
                     </div>
                   </div>
 
-                  <button onClick={handleTest} disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors disabled:opacity-60">
-                    {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                    Enviar notificação de teste
-                  </button>
-
                   <button onClick={handleUnsubscribe} disabled={loading}
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors disabled:opacity-60">
-                    <BellOff size={18} />
+                    {loading ? <Loader2 className="animate-spin" size={18} /> : <BellOff size={18} />}
                     Desativar notificações
                   </button>
                 </>

@@ -5,7 +5,7 @@ import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
 
-// Recebe props extras (params) que podem vir da navegação
+// filterCompanyId agora carrega o unit_id do estabelecimento
 export const JobsList = ({ onNavigate, filterCompanyId }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,13 +15,12 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
   // Filtros
   const [filterContract, setFilterContract] = useState('all');
   const [filterCity, setFilterCity] = useState('all');
-  
-  // Estado para filtro de empresa
+
+  // Estado para filtro de estabelecimento
   const [targetCompanyId, setTargetCompanyId] = useState(filterCompanyId || null);
 
   const [showFilters, setShowFilters] = useState(false);
 
-  // Se filterCompanyId mudar (navegação), atualiza o estado local
   useEffect(() => {
     if (filterCompanyId) setTargetCompanyId(filterCompanyId);
   }, [filterCompanyId]);
@@ -40,19 +39,13 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
     load();
   }, []);
 
-  const formatSchedule = (schedule) => {
-    const map = {
-      'integral': 'Integral', 'noturno': 'Noturno', 'diurno': 'Diurno',
-      'tarde': 'Tarde/Noite', 'escala_6x1': 'Escala 6x1',
-      'escala_12x36': 'Escala 12x36', 'flexivel': 'Flexível'
-    };
-    return map[schedule] || schedule || null;
-  };
+  // Jornada agora é texto livre no AmorimHub — mostramos como veio
+  const formatSchedule = (schedule) => schedule || null;
 
   const filtered = useMemo(() => {
     return jobs.filter(job => {
-      // 1. Filtro de Empresa (vindo do Restaurante)
-      if (targetCompanyId && String(job.company_id) !== String(targetCompanyId)) {
+      // 1. Filtro de estabelecimento (vindo da página de parceiros)
+      if (targetCompanyId && String(job.unit_id) !== String(targetCompanyId)) {
         return false;
       }
 
@@ -62,7 +55,9 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
         job.company.toLowerCase().includes(term) ||
         job.location.toLowerCase().includes(term);
 
-      const matchesContract = filterContract === 'all' || job.contract_type === filterContract;
+      // Contrato é texto livre: compara sem diferenciar maiúsculas
+      const matchesContract = filterContract === 'all' ||
+        (job.contract_type || '').toLowerCase() === filterContract.toLowerCase();
 
       const matchesCity = filterCity === 'all' ||
         (job.city && job.city.toLowerCase().includes(filterCity.toLowerCase()));
@@ -73,11 +68,10 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
 
   const activeFilterCount = [filterContract !== 'all', filterCity !== 'all', targetCompanyId !== null].filter(Boolean).length;
 
-  // Encontra o nome da empresa filtrada para exibir no banner
   const targetCompanyName = useMemo(() => {
     if (!targetCompanyId || jobs.length === 0) return null;
-    const found = jobs.find(j => String(j.company_id) === String(targetCompanyId));
-    return found ? found.company : 'Empresa Selecionada';
+    const found = jobs.find(j => String(j.unit_id) === String(targetCompanyId));
+    return found ? found.company : 'Estabelecimento Selecionado';
   }, [targetCompanyId, jobs]);
 
   const accentGradients = [
@@ -110,14 +104,14 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
                 <Building2 size={20} />
               </div>
               <div>
-                <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">Filtrando por empresa</p>
+                <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">Filtrando por estabelecimento</p>
                 <p className="font-bold text-emerald-950 text-lg leading-none">{targetCompanyName}</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setTargetCompanyId(null)}
               className="p-2 hover:bg-emerald-200 rounded-full text-emerald-700 transition-colors"
-              title="Remover filtro de empresa"
+              title="Remover filtro"
             >
               <X size={20} />
             </button>
@@ -129,7 +123,7 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-900/30" size={20} />
             <input
-              placeholder="Buscar por cargo ou empresa..."
+              placeholder="Buscar por cargo ou estabelecimento..."
               className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-emerald-100 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 bg-white shadow-sm text-sm"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
@@ -157,10 +151,11 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
               <select value={filterContract} onChange={(e) => setFilterContract(e.target.value)}
                 className="w-full px-4 py-3 border border-emerald-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-white cursor-pointer font-medium">
                 <option value="all">Todos</option>
-                <option value="clt">CLT</option>
-                <option value="pj">Freelancer Fixo</option>
-                <option value="extra">Extra (Diária)</option>
-                <option value="estagio">Estágio</option>
+                <option value="CLT">CLT</option>
+                <option value="Freelancer">Freelancer</option>
+                <option value="Temporário">Temporário</option>
+                <option value="Estágio">Estágio</option>
+                <option value="Jovem Aprendiz">Jovem Aprendiz</option>
               </select>
             </div>
             <div className="flex-1 min-w-[180px]">
@@ -200,7 +195,6 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
                   className="group bg-white rounded-[1.75rem] border border-emerald-900/5 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-300 overflow-hidden cursor-pointer"
                   onClick={() => onNavigate('apply', job)}
                 >
-                  {/* Barra de acento no topo */}
                   <div className={`h-1 w-full bg-gradient-to-r ${gradient} opacity-60 group-hover:opacity-100 transition-opacity`}></div>
 
                   <div className="p-6 md:p-7">
@@ -217,7 +211,6 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
 
                       {/* Conteúdo principal */}
                       <div className="flex-1 min-w-0">
-                        {/* Título + Badge */}
                         <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                           <div>
                             <h3 className="text-xl font-bold text-emerald-950 group-hover:text-orange-600 transition-colors leading-tight">
@@ -267,7 +260,7 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
                           <div className="flex items-center gap-2">
                             {job.seniority && (
                               <span className="text-xs font-medium text-stone-400 bg-stone-50 px-2.5 py-1 rounded-lg">
-                                {{ junior: 'Júnior', pleno: 'Pleno', senior: 'Sênior' }[job.seniority] || job.seniority}
+                                {job.seniority}
                               </span>
                             )}
                             {job.location_mode && job.location_mode !== 'onsite' && (
@@ -295,19 +288,19 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
               <Inbox size={32} className="text-stone-400" />
             </div>
             <p className="text-lg font-medium text-emerald-950">
-              {jobs.length === 0 ? 'Nenhuma vaga publicada ainda' : 'Nenhuma vaga encontrada para esta empresa'}
+              {jobs.length === 0 ? 'Nenhuma vaga publicada ainda' : 'Nenhuma vaga encontrada'}
             </p>
             <p className="text-sm text-emerald-900/50 mt-2">
               {jobs.length === 0
-                ? 'As vagas aparecerão aqui assim que os restaurantes começarem a publicar.'
-                : 'Esta empresa pode não ter vagas abertas no momento.'}
+                ? 'As vagas aparecerão aqui assim que os estabelecimentos começarem a publicar.'
+                : 'Este estabelecimento pode não ter vagas abertas no momento.'}
             </p>
             {targetCompanyId && (
-              <button 
+              <button
                 onClick={() => setTargetCompanyId(null)}
                 className="mt-6 text-orange-600 font-bold hover:underline text-sm"
               >
-                Ver vagas de todas as empresas
+                Ver vagas de todos os estabelecimentos
               </button>
             )}
           </div>

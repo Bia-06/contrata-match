@@ -1,4 +1,7 @@
 // src/services/publicService.js
+// Aponta para o banco do AmorimHub: as vagas são `job` (vinculadas a `unit`)
+// e as candidaturas são `job_application`. A antiga tabela `companies` foi
+// substituída pela unidade do AmorimHub.
 import { supabase } from '../lib/supabaseClient';
 
 export const publicService = {
@@ -6,10 +9,10 @@ export const publicService = {
   // ── VAGAS ATIVAS (público, sem auth) ──
   async getActiveJobs() {
     const { data, error } = await supabase
-      .from('jobs')
+      .from('job')
       .select(`
         *,
-        companies ( id, name, logo_path, location, segment )
+        unit ( id, name, logo_path )
       `)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
@@ -20,11 +23,11 @@ export const publicService = {
       id: job.id,
       title: job.title,
       description: job.description,
-      company: job.companies?.name || 'Empresa',
-      company_id: job.company_id,
-      companyLogo: job.companies?.logo_path || null,
-      companyLocation: job.companies?.location || null,
-      companySegment: job.companies?.segment || null,
+      company: job.unit?.name || 'Estabelecimento',
+      unit_id: job.unit_id,
+      companyLogo: logoUrl(job.unit?.logo_path),
+      companyLocation: [job.unit?.city, job.unit?.state].filter(Boolean).join(', ') || null,
+      companySegment: job.unit?.segment || null,
       location: formatLocation(job),
       location_mode: job.location_mode,
       city: job.city,
@@ -35,63 +38,80 @@ export const publicService = {
       seniority: job.seniority,
       work_schedule: job.work_schedule || null,
       age_range: job.age_range || null,
+      custom_questions: job.custom_questions || [],
       posted: formatDate(job.created_at),
       created_at: job.created_at,
     }));
   },
 
-  // ── EMPRESAS PARCEIRAS (público) ──
-  async getCompanies() {
+  // ── ESTABELECIMENTOS PARCEIROS (público) ──
+async getCompanies() {
     const { data, error } = await supabase
-      .from('companies')
-      .select('id, name, logo_path, location, segment, description, website, phone, email')
+      .from('unit')
+      .select('id, name, logo_path, city, state, segment, description, website, phone, email')
+      .eq('active', true)
       .order('name', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+
+    return (data || []).map(u => ({
+      id: u.id,
+      name: u.name,
+      logo_path: logoUrl(u.logo_path),
+      location: [u.city, u.state].filter(Boolean).join(', ') || null,
+      segment: u.segment || null,
+      description: u.description || null,
+      website: u.website || null,
+      phone: u.phone || null,
+      email: u.email || null,
+    }));
   },
 
   // ── ENVIAR CANDIDATURA (anônimo) ──
   async submitApplication({
-    jobId, companyId, candidateName, candidateEmail, candidatePhone,
+    jobId, unitId, candidateName, candidateEmail, candidatePhone,
     candidateAge, candidateCity, candidateNeighborhood,
     experience, salaryExpectation, availability, resumeFile, consentLgpd
   }) {
-    let resumePath = 'not_provided';
+    let resumePath = null;
 
-    // Upload do currículo primeiro (se tiver)
+    // O currículo sobe ANTES: o caminho dele vai gravado na candidatura.
+    // O caminho precisa ser {unit_id}/{job_id}/... — a regra do Storage exige.
     if (resumeFile) {
       const fileExt = resumeFile.name.split('.').pop();
-      const fileName = `${companyId}/${jobId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const fileName = `${unitId}/${jobId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('resumes')
+        .from('curriculos')
         .upload(fileName, resumeFile, { contentType: resumeFile.type });
 
       if (uploadError) {
         console.error('Erro no upload do currículo:', uploadError);
-        resumePath = 'upload_failed';
+        // Segue sem currículo em vez de perder a candidatura inteira
       } else {
         resumePath = fileName;
       }
     }
 
-    // Monta payload base (colunas que existem com certeza)
     const payload = {
       job_id: jobId,
-      company_id: companyId,
+      unit_id: unitId,
       candidate_name: candidateName,
       candidate_email: candidateEmail || null,
       candidate_phone: candidatePhone || null,
+      candidate_age: candidateAge ? parseInt(candidateAge) : null,
       candidate_city: candidateCity || null,
+      candidate_neighborhood: candidateNeighborhood || null,
       availability: availability || null,
-      notes: experience || null,
+      // A experiência é resposta do candidato — vai em `answers`.
+      // `notes` fica reservado para as anotações internas da unidade.
+      answers: experience ? { experiencia: experience } : null,
       resume_path: resumePath,
-      consent_lgpd: consentLgpd || false,
+      consent_lgpd: true,   // o formulário só envia com o aceite marcado
       status: 'new',
     };
 
-    // salary_expectation: converte "R$ 2.500,00" para número
+    // "R$ 2.500,00" → 2500.00
     if (salaryExpectation) {
       const digits = String(salaryExpectation).replace(/\D/g, '');
       if (digits && !isNaN(Number(digits))) {
@@ -99,48 +119,26 @@ export const publicService = {
       }
     }
 
-    // Campos novos (podem não existir na tabela)
-    if (candidateAge) payload.candidate_age = parseInt(candidateAge);
-    if (candidateNeighborhood) payload.candidate_neighborhood = candidateNeighborhood;
-
-    console.log('📋 Payload da candidatura:', JSON.stringify(payload, null, 2));
-
-    // Primeira tentativa com todos os campos
-    const { error } = await supabase.from('applications').insert([payload]);
+    const { error } = await supabase.from('job_application').insert([payload]);
 
     if (error) {
-      console.error('❌ Erro Supabase:', error.message, '| code:', error.code, '| details:', error.details, '| hint:', error.hint);
-
-      // Se o erro for de coluna inexistente, tenta sem os campos novos
-      if (error.code === '42703' || error.message?.includes('column') || error.details?.includes('column')) {
-        console.warn('⚠️ Retentando sem campos novos...');
-        delete payload.candidate_age;
-        delete payload.candidate_neighborhood;
-
-        const { error: err2 } = await supabase.from('applications').insert([payload]);
-        if (err2) {
-          console.error('❌ Erro na 2ª tentativa:', err2.message, err2.code, err2.details);
-          throw err2;
-        }
-        return { success: true };
-      }
-
+      console.error('Erro ao enviar candidatura:', error.message, error.code, error.details);
       throw error;
     }
 
     return { success: true };
   },
-
-  // ── URL ASSINADA PARA DOWNLOAD DE CURRÍCULO ──
-  async getResumeUrl(resumePath) {
-    if (!resumePath || resumePath === 'not_provided' || resumePath === 'upload_failed') return null;
-    const { data, error } = await supabase.storage.from('resumes').createSignedUrl(resumePath, 3600);
-    if (error) { console.error('Erro URL currículo:', error); return null; }
-    return data.signedUrl;
-  },
 };
 
 // ── Helpers ──
+
+// Monta a URL pública da logo a partir do caminho salvo
+function logoUrl(path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from('logos').getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
 function formatLocation(job) {
   if (job.location_mode === 'remote') return 'Remoto';
   const parts = [];
@@ -152,8 +150,9 @@ function formatLocation(job) {
 }
 
 function formatContractType(type) {
-  const labels = { clt: 'CLT', pj: 'PJ', estagio: 'Estágio', extra: 'Extra' };
-  return labels[type] || type || 'CLT';
+  // No AmorimHub o contrato é texto livre ("CLT", "Freelancer"...),
+  // então mostramos como veio.
+  return type || 'A combinar';
 }
 
 function formatDate(dateStr) {

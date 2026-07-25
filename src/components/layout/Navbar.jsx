@@ -47,9 +47,6 @@ export const Navbar = ({ minimal = false, onNavigate, onMenuToggle, isMenuOpen }
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-4">
-              <button onClick={() => handleNav('adminLogin')} className="text-sm font-semibold text-emerald-900 hover:text-emerald-700">
-                Login Empresa
-              </button>
               <Button variant="accent" size="sm" onClick={() => handleNav('jobs')}>Buscar Vagas</Button>
             </div>
 

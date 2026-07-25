@@ -109,9 +109,6 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen, onOpenModal 
                 <Button size="lg" onClick={() => onNavigate('jobs')} className="shadow-orange-200 shadow-2xl">
                   Encontrar Vagas
                 </Button>
-                <Button variant="secondary" size="lg" onClick={() => onNavigate('adminLogin')}>
-                  Contratar Talentos
-                </Button>
               </div>
             </div>
 
@@ -253,9 +250,7 @@ export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen, onOpenModal 
                   <UtensilsCrossed size={48} className="mx-auto mb-4 text-stone-300" />
                   <p className="text-lg font-medium text-emerald-950">Nenhuma vaga publicada ainda</p>
                   <p className="text-sm text-emerald-900/50 mt-2">As vagas aparecerão aqui assim que os restaurantes começarem a publicar.</p>
-                  <Button variant="secondary" className="mt-6" onClick={() => onNavigate('adminLogin')}>
-                    Cadastrar meu restaurante
-                  </Button>
+                 
                 </div>
               </FadeInSection>
             )}

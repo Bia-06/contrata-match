@@ -112,7 +112,7 @@ export const ApplyForm = ({ selectedJob, onNavigate, showToast }) => {
     try {
       await publicService.submitApplication({
         jobId: selectedJob.id,
-        companyId: selectedJob.company_id,
+        unitId: selectedJob.unit_id,
         candidateName: form.name.trim(),
         candidateEmail: form.email.trim() || null,
         candidatePhone: form.phone.trim(),

@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { ModernLogo } from '../ui/ModernLogo'; 
 import { Button } from '../ui/Button';
 
-export const Navbar = ({ minimal = false, onNavigate, onMenuToggle, isMenuOpen }) => {
+// 1. Adicionada a prop 'minimal' que estava faltando
+export const Navbar = ({ onNavigate, minimal = false }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const handleNav = (target) => {
     onNavigate(target);
-    if (isMenuOpen && onMenuToggle) onMenuToggle();
+    if (isMenuOpen) setIsMenuOpen(false);
   };
 
   return (
@@ -23,7 +25,6 @@ export const Navbar = ({ minimal = false, onNavigate, onMenuToggle, isMenuOpen }
           <>
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-10">
-              {/* NOVO: Link Início */}
               <button onClick={() => handleNav('landing')} className="text-sm font-medium text-emerald-900/60 hover:text-orange-600 transition-colors relative group">
                 Início
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full"></span>
@@ -51,7 +52,8 @@ export const Navbar = ({ minimal = false, onNavigate, onMenuToggle, isMenuOpen }
             </div>
 
             {/* Mobile Menu Toggle */}
-            <button className="md:hidden text-emerald-900" onClick={onMenuToggle}>
+            {/* 2. CORREÇÃO AQUI: Alterado onMenuToggle para setIsMenuOpen(!isMenuOpen) */}
+            <button className="md:hidden text-emerald-900" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <X /> : <Menu />}
             </button>
           </>
@@ -61,7 +63,6 @@ export const Navbar = ({ minimal = false, onNavigate, onMenuToggle, isMenuOpen }
       {/* Mobile Dropdown */}
       {isMenuOpen && !minimal && (
         <div className="md:hidden border-t border-emerald-100 bg-stone-50 p-6 space-y-4 shadow-xl absolute w-full rounded-b-3xl animate-[fadeIn_0.2s_ease-out]">
-          {/* NOVO: Link Início Mobile */}
           <button onClick={() => handleNav('landing')} className="block w-full text-left py-3 font-medium text-emerald-900 border-b border-gray-100">
             Início
           </button>

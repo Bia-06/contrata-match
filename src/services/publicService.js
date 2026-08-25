@@ -12,7 +12,7 @@ export const publicService = {
       .from('job')
       .select(`
         *,
-        unit ( id, name, logo_path )
+        unit ( id, name, logo_path, city, state, segment )
       `)
       .eq('status', 'active')
       .order('created_at', { ascending: false });

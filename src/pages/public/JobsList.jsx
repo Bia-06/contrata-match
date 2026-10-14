@@ -1,12 +1,13 @@
 // src/pages/public/JobsList.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, MapPin, Clock, SlidersHorizontal, Building2, Loader2, Inbox, Calendar, DollarSign, ArrowRight, X } from 'lucide-react';
+import { Search, MapPin, Clock, SlidersHorizontal, Building2, Loader2, Inbox, Calendar, DollarSign, ArrowRight, X, Link2, Check } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
+import { matchesCompany } from '../../lib/routes';
 
-// filterCompanyId agora carrega o unit_id do estabelecimento
-export const JobsList = ({ onNavigate, filterCompanyId }) => {
+// filterCompany vem da URL (/vagas/:estabelecimento): slug do nome ou unit_id
+export const JobsList = ({ onNavigate, filterCompany }) => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,14 +17,22 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
   const [filterContract, setFilterContract] = useState('all');
   const [filterCity, setFilterCity] = useState('all');
 
-  // Estado para filtro de estabelecimento
-  const [targetCompanyId, setTargetCompanyId] = useState(filterCompanyId || null);
+  // O filtro de estabelecimento mora na URL; remover = voltar para /vagas
+  const targetCompanyId = filterCompany || null;
+  const clearCompanyFilter = () => onNavigate('jobs');
+  const [copied, setCopied] = useState(false);
 
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    if (filterCompanyId) setTargetCompanyId(filterCompanyId);
-  }, [filterCompanyId]);
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar link:', err);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -45,7 +54,7 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
   const filtered = useMemo(() => {
     return jobs.filter(job => {
       // 1. Filtro de estabelecimento (vindo da página de parceiros)
-      if (targetCompanyId && String(job.unit_id) !== String(targetCompanyId)) {
+      if (!matchesCompany(job, targetCompanyId)) {
         return false;
       }
 
@@ -70,7 +79,7 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
 
   const targetCompanyName = useMemo(() => {
     if (!targetCompanyId || jobs.length === 0) return null;
-    const found = jobs.find(j => String(j.unit_id) === String(targetCompanyId));
+    const found = jobs.find(j => matchesCompany(j, targetCompanyId));
     return found ? found.company : 'Estabelecimento Selecionado';
   }, [targetCompanyId, jobs]);
 
@@ -98,8 +107,8 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
         </div>
 
         {targetCompanyId && (
-          <div className="mb-6 p-4 bg-emerald-100 border border-emerald-200 rounded-2xl flex items-center justify-between animate-[fadeIn_0.3s_ease-out]">
-            <div className="flex items-center gap-3">
+          <div className="mb-6 p-4 bg-emerald-100 border border-emerald-200 rounded-2xl flex items-center justify-between gap-3 animate-[fadeIn_0.3s_ease-out]">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="bg-emerald-500 text-white p-2 rounded-lg">
                 <Building2 size={20} />
               </div>
@@ -108,13 +117,23 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
                 <p className="font-bold text-emerald-950 text-lg leading-none">{targetCompanyName}</p>
               </div>
             </div>
-            <button
-              onClick={() => setTargetCompanyId(null)}
-              className="p-2 hover:bg-emerald-200 rounded-full text-emerald-700 transition-colors"
-              title="Remover filtro"
-            >
-              <X size={20} />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={handleCopyLink}
+                className="flex items-center gap-1.5 px-3 py-2 hover:bg-emerald-200 rounded-full text-emerald-700 text-xs font-bold transition-colors"
+                title="Copiar link das vagas deste estabelecimento"
+              >
+                {copied ? <Check size={16} /> : <Link2 size={16} />}
+                <span className="hidden sm:inline">{copied ? 'Copiado!' : 'Copiar link'}</span>
+              </button>
+              <button
+                onClick={clearCompanyFilter}
+                className="p-2 hover:bg-emerald-200 rounded-full text-emerald-700 transition-colors"
+                title="Remover filtro"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
         )}
 
@@ -169,7 +188,7 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
             </div>
             {activeFilterCount > 0 && (
               <div className="flex items-end">
-                <button onClick={() => { setFilterContract('all'); setFilterCity('all'); setTargetCompanyId(null); }}
+                <button onClick={() => { setFilterContract('all'); setFilterCity('all'); if (targetCompanyId) clearCompanyFilter(); }}
                   className="text-sm text-orange-600 font-bold hover:underline px-3 py-3">
                   Limpar
                 </button>
@@ -297,7 +316,7 @@ export const JobsList = ({ onNavigate, filterCompanyId }) => {
             </p>
             {targetCompanyId && (
               <button
-                onClick={() => setTargetCompanyId(null)}
+                onClick={clearCompanyFilter}
                 className="mt-6 text-orange-600 font-bold hover:underline text-sm"
               >
                 Ver vagas de todos os estabelecimentos

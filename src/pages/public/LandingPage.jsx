@@ -42,7 +42,7 @@ const FadeInSection = ({ children, delay = '0ms' }) => {
   );
 };
 
-export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen, onOpenModal }) => {
+export const LandingPage = ({ onNavigate, onMenuToggle, isMenuOpen }) => {
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
 

@@ -71,7 +71,7 @@ async getCompanies() {
   async submitApplication({
     jobId, unitId, candidateName, candidateEmail, candidatePhone,
     candidateAge, candidateCity, candidateNeighborhood,
-    experience, salaryExpectation, availability, resumeFile, consentLgpd
+    experience, salaryExpectation, availability, resumeFile
   }) {
     let resumePath = null;
 

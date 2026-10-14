@@ -3,6 +3,7 @@ import { Search, MapPin, ExternalLink, Utensils, Loader2, X, Globe, Phone, Mail,
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
+import { buildPath, slugify } from '../../lib/routes';
 
 // --- Componente do Modal de Detalhes ---
 const RestaurantModal = ({ company, onClose, onNavigate }) => {
@@ -12,13 +13,12 @@ const RestaurantModal = ({ company, onClose, onNavigate }) => {
 
   const handleVerVagas = () => {
     onClose();
-    onNavigate('jobs', { filterCompanyId: company.id });
+    onNavigate('jobs', { company: slugify(company.name) });
   };
 
-  // Função para copiar link
+  // Copia o link direto para as vagas deste estabelecimento (/vagas/:slug)
   const handleShare = () => {
-    // Monta a URL atual (que já tem o ID graças ao RestaurantsList)
-    const url = window.location.href;
+    const url = window.location.origin + buildPath('jobs', { company: slugify(company.name) });
     navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -37,7 +37,7 @@ const RestaurantModal = ({ company, onClose, onNavigate }) => {
           <button 
             onClick={handleShare}
             className="p-2 rounded-full bg-white/90 hover:bg-emerald-50 text-emerald-700 transition-colors shadow-sm flex items-center gap-2 group border border-emerald-100/50"
-            title="Copiar link deste restaurante"
+            title="Copiar link das vagas deste restaurante"
           >
             {copied ? <Check size={20} className="text-emerald-600" /> : <Share2 size={20} />}
             <span className={`text-xs font-bold overflow-hidden transition-all duration-300 ${copied ? 'w-auto px-1' : 'w-0 group-hover:w-auto group-hover:px-1'}`}>
@@ -308,7 +308,7 @@ export const RestaurantsList = ({ onNavigate }) => {
                     
                     {/* Botão Ver Vagas (Navegação Direta) */}
                     <button 
-                      onClick={() => onNavigate('jobs')} 
+                      onClick={() => onNavigate('jobs', { company: slugify(company.name) })}
                       className="text-sm font-bold text-emerald-700 group-hover:text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       Ver vagas <ExternalLink size={14} />

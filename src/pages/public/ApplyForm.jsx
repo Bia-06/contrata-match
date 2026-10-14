@@ -3,11 +3,12 @@ import React, { useState, useRef } from 'react';
 import {
   ChevronLeft, Upload, Loader2, MapPin, DollarSign, Calendar, Clock,
   Check, FileText, X, AlertTriangle, Briefcase, User, Mail, Phone,
-  Building2, Send, Users
+  Building2, Send, Users, CheckCircle2, MessageCircle, ArrowRight
 } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
+import { slugify } from '../../lib/routes';
 
 // ── Helpers de formatação ──
 const formatSchedule = (schedule) => {
@@ -51,8 +52,9 @@ const maskCurrency = (value) => {
   return `R$ ${num}`;
 };
 
-export const ApplyForm = ({ selectedJob, onNavigate, showToast }) => {
+export const ApplyForm = ({ selectedJob, onNavigate }) => {
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [resumeFile, setResumeFile] = useState(null);
   const [consentLgpd, setConsentLgpd] = useState(false);
@@ -71,6 +73,51 @@ export const ApplyForm = ({ selectedJob, onNavigate, showToast }) => {
   });
 
   if (!selectedJob) return null;
+
+  const companySlug = slugify(selectedJob.company);
+
+  // ── Tela de confirmação: fica fixa até a pessoa escolher para onde ir ──
+  if (submitted) {
+    const firstName = form.name.trim().split(' ')[0];
+    return (
+      <div className="min-h-screen bg-stone-50 font-sans">
+        <Navbar minimal onNavigate={onNavigate} />
+        <div className="max-w-xl mx-auto px-4 sm:px-6 py-10 lg:py-16">
+          <div className="bg-white rounded-[2rem] border border-emerald-100 shadow-sm p-8 sm:p-10 text-center animate-[fadeIn_0.3s_ease-out]">
+            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 size={44} className="text-emerald-600" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-emerald-950 mb-3">
+              Candidatura enviada!
+            </h1>
+            <p className="text-stone-600 leading-relaxed">
+              {firstName ? `Obrigado, ${firstName}! ` : ''}Recebemos sua candidatura para a vaga de{' '}
+              <strong className="text-emerald-950">{selectedJob.title}</strong> no{' '}
+              <strong className="text-emerald-950">{selectedJob.company}</strong>.
+            </p>
+
+            <div className="mt-6 p-4 bg-stone-50 border border-stone-100 rounded-2xl flex items-start gap-3 text-left">
+              <MessageCircle size={20} className="text-orange-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-stone-600 leading-relaxed">
+                Se o estabelecimento tiver interesse no seu perfil, ele vai entrar em contato pelo telefone/WhatsApp{' '}
+                <strong className="text-emerald-950 whitespace-nowrap">{form.phone}</strong>. Fique de olho!
+              </p>
+            </div>
+
+            <div className="mt-8 flex flex-col gap-3">
+              <Button onClick={() => onNavigate('jobs', { company: companySlug })} className="w-full justify-center">
+                Ver outras vagas do {selectedJob.company} <ArrowRight size={16} className="ml-1" />
+              </Button>
+              <button onClick={() => onNavigate('jobs')}
+                className="text-sm font-bold text-emerald-700 hover:text-orange-600 transition-colors py-2">
+                Ver todas as vagas
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
 
@@ -125,8 +172,8 @@ export const ApplyForm = ({ selectedJob, onNavigate, showToast }) => {
         resumeFile,
         consentLgpd: true,
       });
-      showToast('Candidatura enviada com sucesso! 🎉');
-      onNavigate('jobs');
+      setSubmitted(true);
+      window.scrollTo(0, 0);
     } catch (err) {
       console.error('Erro ao enviar candidatura:', err);
       setError(
@@ -161,7 +208,7 @@ export const ApplyForm = ({ selectedJob, onNavigate, showToast }) => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 lg:py-10">
         {/* Voltar */}
-        <button onClick={() => onNavigate('jobs')}
+        <button onClick={() => onNavigate('jobs', { company: companySlug })}
           className="flex items-center text-sm text-emerald-900/40 hover:text-emerald-900 mb-6 transition-colors font-medium group">
           <ChevronLeft size={16} className="mr-1 group-hover:-translate-x-0.5 transition-transform" /> Voltar para vagas
         </button>

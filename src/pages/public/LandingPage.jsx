@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChefHat, Wine, Coffee, Store, UtensilsCrossed, ChevronLeft, ChevronRight, Loader2, MapPin, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
-import { Footer } from '../../components/layout/Footer'; 
 import { publicService } from '../../services/publicService';
 
 // Componente para animar elementos quando entram na tela

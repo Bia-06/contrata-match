@@ -9,6 +9,7 @@ import { Navbar } from '../../components/layout/Navbar';
 import { Button } from '../../components/ui/Button';
 import { publicService } from '../../services/publicService';
 import { slugify } from '../../lib/routes';
+import { LINK_PRIVACIDADE } from '../../lib/legal';
 
 // ── Helpers de formatação ──
 const formatSchedule = (schedule) => {
@@ -479,8 +480,11 @@ export const ApplyForm = ({ selectedJob, onNavigate }) => {
                         {consentLgpd && <Check size={14} className="text-white stroke-[3]" />}
                       </div>
                       <span className="text-xs text-stone-500 leading-relaxed">
-                        Autorizo o tratamento dos meus dados pessoais para fins de recrutamento e seleção, conforme a{' '}
-                        <span className="text-emerald-700 font-medium">Lei Geral de Proteção de Dados (LGPD){reqMark}</span>.
+                        Autorizo o uso dos meus dados e do meu currículo pelo estabelecimento desta vaga para recrutamento e seleção, conforme a{' '}
+                        <a href={LINK_PRIVACIDADE} target="_blank" rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-emerald-700 font-medium underline">Política de Privacidade</a>{' '}
+                        e a Lei Geral de Proteção de Dados (LGPD){reqMark}.
                       </span>
                     </label>
 

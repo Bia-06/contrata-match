@@ -8,6 +8,7 @@ import { RestaurantsList } from './pages/public/RestaurantsList';
 import { AboutPage } from './pages/public/AboutPage';
 import { publicService } from './services/publicService';
 import { buildPath, parsePath } from './lib/routes';
+import { RodapeLegal } from './components/layout/RodapeLegal';
 
 function App() {
   const [route, setRoute] = useState(() => parsePath(window.location.pathname));
@@ -94,6 +95,7 @@ function App() {
   return (
     <div className="app">
       {renderPage()}
+      <RodapeLegal />
     </div>
   );
 }
